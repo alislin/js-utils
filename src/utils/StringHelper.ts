@@ -1,0 +1,461 @@
+/*
+ * @Author: Lin Ya
+ * @Date: 2022-06-30 20:29:34
+ * @LastEditors: Lin Ya
+ * @LastEditTime: 2024-07-17 10:13:01
+ * @Description: string 帮助方法
+ */
+
+const ID_SEED_LENGNT = 5;
+const OFFSET = Math.pow(10, ID_SEED_LENGNT - 1);
+const ID_SEED_MARK = "@";
+
+
+export function stringValue(value: string): string {
+    if (isEmpty(value)) {
+        return "";
+    }
+    return value;
+}
+
+/**
+ * 判断字符串是否为空或者空字串
+ * @param value 字符串
+ * @returns 是否为空
+ */
+export function isEmpty(value?: string | null): boolean {
+    if (!value || value === undefined || value === null || value === "") {
+        return true;
+    }
+    return false;
+}
+
+/**
+ * 获取请求字串
+ * @param value 参数对象
+ * @returns 请求字串
+ */
+export function urlParameter(value: any): string {
+    let result = "";
+    if (!value || value === null || value === undefined) {
+        return result;
+    }
+    let index = 0;
+    for (let key in value) {
+        let v = value[key];
+        if (v && v !== null && !isEmpty(v)) {
+            let param = key + "=" + v;
+            if (!isEmpty(param)) {
+                if (index > 0) {
+                    result += "&";
+                }
+                result += param;
+            }
+            index++;
+        }
+    }
+    return result;
+}
+
+export function randomString(length: number, src?: string): string {
+    let template = "1234567890abcdefghijklmnopqrstuvwxyz";
+    let t = template;
+    if (src && !isEmpty(src)) {
+        t = src;
+    }
+
+    let t_len = t.length - 1;
+    let result = "";
+    for (let i = 1; i < length; i++) {
+        let index = Math.round(Math.random() * t_len);
+        let mark = <string>t.substring(index, index + 1);
+        result += mark;
+
+    }
+    return result;
+}
+
+// #region Node Id 处理
+/**
+ * 创建唯一标识Id
+ * @param id 原始id
+ * @param seeds 添加字串（如果为空，则添加随机字符）
+ * @returns 增加随机字符的id
+ */
+export function setNodeId(id: string, ...seeds: string[]) {
+    let mark = <string><unknown>Math.round(Math.random() * OFFSET + OFFSET);
+
+    if (seeds.length > 0) {
+        let seed = seeds[0];
+        for (let i = 1; i < seeds.length; i++) {
+            const item = seeds[i];
+            if (!isEmpty(item)) {
+                seed += ID_SEED_MARK + item;
+            }
+        }
+        mark = seed ?? mark;
+    }
+    return id + ID_SEED_MARK + mark;
+}
+
+/**
+ * 获取原始id（移除随机字符）
+ * @param id 带随机字符的id
+ * @returns 原始id
+ */
+export function getNodeId(id?: string) {
+    if (!id || isEmpty(id)) {
+        return id ?? "";
+    }
+    // 检查分隔符
+    let index = id.toString().indexOf(ID_SEED_MARK);
+    if (index < 0) {
+        return id;
+    }
+
+    return id.substring(0, index);
+}
+
+/**
+ * 获取id种的附加字符
+ * @param id 带附加字符的id
+ * @returns 附加字符
+ */
+export function getNodeSeed(id: string) {
+    if (isEmpty(id)) {
+        return id;
+    }
+    // 检查分隔符
+    let index = id.toString().indexOf(ID_SEED_MARK);
+    if (index < 0) {
+        return "";
+    }
+
+    return id.toString().substring(index + 1);
+}
+
+/**
+ * 将多节点id拆分为id列表
+ * @param id 带附加字符的id
+ * @returns id列表
+ */
+export function getNodeIdList(id: string) {
+    let result = [] as string[];
+    if (isEmpty(id)) return result;
+
+    result = id.toString().split(ID_SEED_MARK);
+    return result;
+}
+// #endregion
+
+/**
+ * 字符串转换
+ * @param value 
+ * @returns 字符串转换
+ */
+export function toStr(value: any) {
+    return <string>value;
+}
+
+/**
+ * 判断是否为数字
+ * @param value 输入参数
+ * @returns 是否为数字
+ */
+export function isNumber(value: string | number): boolean {
+    return ((value !== null) &&
+        (value !== '') &&
+        !isNaN(Number(value.toString())));
+}
+
+export function isInteger(value: number): boolean {
+    return Number(value) === Math.round(value);
+}
+
+/**
+ * 转换为数字
+ * @param value 
+ * @returns 数字
+ */
+export function toNumber(value: any) {
+    if (isNumber(value)) return Number(value.toString());
+    return 0;
+}
+
+// #region 日期处理
+export function getTimeNumber(date?: Date | string | number) {
+    if (!date) {
+        return 0;
+    }
+    let d = new Date(date);
+    return d.getTime();
+}
+
+/**
+ * 获取日期字串
+ * @param date 日期
+ * @returns 日期字串 (eg: 2022-08-07)
+ */
+export function getDate(date?: Date | string | number, split: string = "-"): string | undefined {
+    if (date) {
+
+        let d = new Date(date);
+
+        const option = {
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit"
+        } as Intl.DateTimeFormatOptions;
+        let result = d.toLocaleDateString("zh-CN", option).replace(/\//g, split);
+
+        return result;
+    }
+    return undefined;
+}
+
+/**
+ * 获取日期字串
+ * @param date 日期
+ * @returns 日期字串 (eg: 2022-08-07)
+ */
+export function getTime(date?: Date | string | number, split: string = "-"): string | undefined {
+    if (date) {
+
+        let d = new Date(date);
+
+        const option = {
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit",
+        } as Intl.DateTimeFormatOptions;
+        let result = d.toLocaleDateString("zh-CN", option).replace(/\//g, split);
+
+        return result;
+    }
+    return undefined;
+}
+
+/**
+ * 按照时长自动转换为输出显示
+ * @param n 时长（毫秒）
+ * @returns 时长字串（eg: 2分31秒）
+ */
+export function formatTimestamp(n: number) {
+    if (n < 1000) {
+        return `${Math.floor(n)}毫秒`;
+    } else if (n < 60 * 1000) {
+        const seconds = Math.floor(n / 1000);
+        return `${seconds}秒`;
+    } else if (n < 60 * 60 * 1000) {
+        const minutes = Math.floor(n / (60 * 1000));
+        const seconds = Math.floor((n % (60 * 1000)) / 1000);
+        return `${minutes}分${seconds}秒`;
+    } else if (n < 24 * 60 * 60 * 1000) {
+        const hours = Math.floor(n / (60 * 60 * 1000));
+        const minutes = Math.floor((n % (60 * 60 * 1000)) / (60 * 1000));
+        return `${hours}小时${minutes}分`;
+    } else {
+        const days = Math.floor(n / (24 * 60 * 60 * 1000));
+        const hours = Math.floor((n % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000));
+        const minutes = Math.floor((n % (60 * 60 * 1000)) / (60 * 1000));
+        return `${days}天${hours}小时${minutes}分`;
+    }
+}
+
+/**
+ * 返回时间对象
+ * @param date 
+ * @returns 
+ */
+export function toDate(date?: Date | string | number) {
+    if (date) {
+        let d = new Date(date);
+        return d;
+    }
+    return undefined;
+}
+
+/**
+ * 两个日期比较
+ * @param date1 
+ * @param date2 
+ * @returns 
+ */
+export function compareTime(date1: Date | string | number, date2: Date | string | number) {
+    let d1 = new Date(date1);
+    let d2 = new Date(date2);
+    return d1.getTime() - d2.getTime();
+}
+// #endregion
+
+/**
+ * 字符串列表转换为字符串
+ * @param list 字符串列表
+ * @returns 结果字串(换行分隔)
+ */
+export function listToStr(list?: string[], split?: string): string {
+    let m = "";
+    let sp = split ?? "\n";
+    if (!list || list.length === 0) {
+        return m;
+    }
+    let i = 0;
+    list.forEach(x => {
+        if (i !== 0) {
+            m += sp;
+        }
+        m += x;
+        i++;
+    })
+    return m;
+}
+
+/**
+ * 按照换行转换为列表
+ * @param str 字符串
+ * @returns 列表
+ */
+export function strToList(str?: string): string[] {
+    let n = str?.replace("\r", "");
+    return n?.split("\n") ?? [];
+}
+
+export function splitText(str?: string, splitList?: string) {
+    if (isEmpty(str)) return [];
+    const sp = splitList ?? " ,;/\\|\n\t";
+    const sp_regex = new RegExp(`[${sp}]`);
+    const result = str!.split(sp_regex);
+    return result;
+}
+
+export function fenToYuan(fen: number, fixed: boolean = false) {
+    let v = (fen / 100.0);
+    if (fixed) {
+        v = <number><unknown>(v.toFixed(2));
+        return v;
+    }
+
+    return v;
+}
+
+export function yuanToFen(value: number) {
+    return value * 100;
+}
+
+// export async function structuralClone<T>(obj: T):Promise<T> {
+//     let result = new Promise(resolve => {
+//         const { port1, port2 } = new MessageChannel();
+//         port2.onmessage = ev => resolve(ev.data);
+//         port1.postMessage(obj);
+//     });
+//     return result as T;
+// }
+
+/**
+ * 完全复制对象(创建新对象)
+ * @param obj 
+ * @returns 复制的对象
+ */
+export function clone<T>(obj: T) {
+    if (!obj || obj === null) {
+        return {} as T;
+    }
+    let temp = JSON.stringify(obj);
+    return JSON.parse(temp) as T;
+}
+
+/**
+ * 检查对象是否值相等
+ * @param a 
+ * @param b 
+ * @returns 是否相等
+ */
+export function valueEqual<T>(a: T, b: T): boolean {
+    if (!a && !b) return true;
+    if (!a || !b) return false;
+    let m_a = JSON.stringify(a);
+    let m_b = JSON.stringify(b);
+    return m_a === m_b;
+}
+
+/**
+ * 获取列表交集
+ * @param list1 
+ * @param list2 
+ * @param equals 相等计算方法
+ * @returns 两个列表的交集
+ */
+export function intersect<T>(list1: T[], list2: T[], equals?: (x: T, y: T) => boolean) {
+    if (!list1 || !list2) return [];
+
+    let result = list1.filter(x => {
+        let count = list2.filter(y => {
+            if (equals) {
+                if (equals(x, y)) {
+                    return true;
+                }
+                return false;
+            }
+            else {
+                return valueEqual(x, y);
+            }
+        }).length
+        return count > 0;
+    });
+    return result;
+}
+
+export function toDateValue(value: Date | string) {
+    let d = new Date(value);
+    let m = d.toISOString();
+    return m.substring(0, 10);
+}
+
+export function toCharArray(value?: string): string[] {
+    const list: string[] = [];
+    if (!value) return list;
+    for (let i = 0; i < value.length; i++) {
+        list.push(value[i]);
+    }
+    return list;
+}
+
+/**
+ * 检查对象是否相等
+ */
+export function objectEqual() {
+    let orgData: string = "";
+
+    /**
+     * 仅检查是否相等
+     * @param data 比较对象
+     * @returns 
+     */
+    function checkOnly(data: any, org_data?: any) {
+        if (org_data) {
+            orgData = JSON.stringify(org_data);
+        }
+        const m = JSON.stringify(data);
+        const result = orgData === m;
+        if (result) return true;
+        return false;
+    }
+
+    /**
+     * 检查是否相等，并将新对象记录下来
+     * @param data 比较对象
+     * @returns 
+     */
+    function check(data: any) {
+        const m = JSON.stringify(data);
+        const result = orgData === m;
+        if (result) return true;
+        orgData = m;
+        return false;
+    }
+
+    return { check, checkOnly };
+}
