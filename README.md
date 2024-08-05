@@ -1,2 +1,2 @@
 # js-utils
-js utils
+js utils.

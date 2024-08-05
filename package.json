@@ -26,5 +26,11 @@
   "bugs": {
     "url": "https://github.com/alislin/js-utils/issues"
   },
-  "homepage": "https://github.com/alislin/js-utils#readme"
+  "homepage": "https://github.com/alislin/js-utils#readme",
+  "files": [
+    "dist",
+    "LICENSE",
+    "README.md",
+    "package.json"
+  ]
 }
