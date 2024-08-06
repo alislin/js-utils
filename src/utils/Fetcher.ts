@@ -1,13 +1,12 @@
-import { isEmpty } from "./StringHelper";
-
 /*
- * @Author: Lin Ya
- * @Date: 2022-06-08 10:53:42
- * @LastEditors: Lin Ya
- * @LastEditTime: 2024-06-20 08:27:25
- * @Description: 数据请求
- */
-class Fetcher {
+* @Author: Lin Ya
+* @Date: 2022-06-08 10:53:42
+* @LastEditors: Lin Ya
+* @LastEditTime: 2024-06-20 08:27:25
+* @Description: 数据请求
+*/
+import { isEmpty } from "./StringHelper";
+export class Fetcher {
 
     /** 错误数据返回对象 */
     public ErrorResponse: (error: string) => {} = (err) => { return {} };
@@ -203,5 +202,3 @@ class Fetcher {
     }
 }
 
-export default new Fetcher();
-export { Fetcher }
