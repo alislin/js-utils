@@ -6,3 +6,6 @@
 ![GitHub Actions Status](https://github.com/alislin/js-utils/actions/workflows/npm-publish.yml/badge.svg)
 
 js utils.
+```shell
+npm i zc-js-utils
+```
