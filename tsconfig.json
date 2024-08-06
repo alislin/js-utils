@@ -1,7 +1,7 @@
 {
     "files": ["src/index.ts"],
-    "include": ["src/**/*"],
-    "exclude": ["src/**/*.test.*","node_modules", "dist"],
+    "include": ["src/**/*", "test"],
+    "exclude": ["**/*.test.*","node_modules", "dist"],
     "compilerOptions": {
       "target": "es2017",
       "module": "es2015",
