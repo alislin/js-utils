@@ -1,11 +1,12 @@
 // import path from "path";
 // import fs from "fs";
-import resolve from "@rollup/plugin-node-resolve";
 // import babel from "@rollup/plugin-babel";
-// 导入依赖
-const { terser } = require("rollup-plugin-terser");
-const commonjs = require("@rollup/plugin-commonjs");
-const typescript = require("rollup-plugin-typescript2");
+import resolve from "@rollup/plugin-node-resolve";
+import clear from "rollup-plugin-clear";
+import typescript from "rollup-plugin-typescript2";
+import commonjs from "@rollup/plugin-commonjs";
+import { terser } from "rollup-plugin-terser";
+
 // tsconfig.json合并选项
 // 一般来说默认使用项目的tsconfig.json，如果有个别需要修改的如下，可以在此修改
 const override = { compilerOptions: { module: "es2015" } };
@@ -27,6 +28,7 @@ const config = [
       //   export: "named",
     },
     plugins: [
+      clear({ targets: ["dist"] }),
       resolve(),
       commonjs(),
       typescript({ tsconfig: "./tsconfig.json", tsconfigOverride: override }),
@@ -37,25 +39,25 @@ const config = [
       terser(),
     ],
   },
-//   ...utilsFiles.map((file) => ({
-//     input: file,
-//     output: {
-//       file: `dist/${path.basename(file, ".ts")}.js`,
-//       format: "es",
-//       sourcemap: true,
-//       //   export: "named",
-//     },
-//     plugins: [
-//       resolve(),
-//       commonjs(),
-//       typescript({ tsconfig: "./tsconfig.json", tsconfigOverride: override }),
-//       //   babel({
-//       //     exclude: "node_modules/**",
-//       //     babelHelpers: "bundled",
-//       //   }),
-//       terser(),
-//     ],
-//   })),
+  //   ...utilsFiles.map((file) => ({
+  //     input: file,
+  //     output: {
+  //       file: `dist/${path.basename(file, ".ts")}.js`,
+  //       format: "es",
+  //       sourcemap: true,
+  //       //   export: "named",
+  //     },
+  //     plugins: [
+  //       resolve(),
+  //       commonjs(),
+  //       typescript({ tsconfig: "./tsconfig.json", tsconfigOverride: override }),
+  //       //   babel({
+  //       //     exclude: "node_modules/**",
+  //       //     babelHelpers: "bundled",
+  //       //   }),
+  //       terser(),
+  //     ],
+  //   })),
 ];
 
 export default config;
