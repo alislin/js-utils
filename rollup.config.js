@@ -32,11 +32,7 @@ const config = [
       resolve(),
       commonjs(),
       typescript({ tsconfig: "./tsconfig.json", tsconfigOverride: override }),
-      // babel({
-      //   exclude: "node_modules/**",
-      //   babelHelpers: "bundled",
-      // }),
-      terser(),
+      // terser(),    // 压缩代码
     ],
   },
   //   ...utilsFiles.map((file) => ({
@@ -51,10 +47,6 @@ const config = [
   //       resolve(),
   //       commonjs(),
   //       typescript({ tsconfig: "./tsconfig.json", tsconfigOverride: override }),
-  //       //   babel({
-  //       //     exclude: "node_modules/**",
-  //       //     babelHelpers: "bundled",
-  //       //   }),
   //       terser(),
   //     ],
   //   })),
