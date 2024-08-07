@@ -10,7 +10,11 @@ const ID_SEED_LENGNT = 5;
 const OFFSET = Math.pow(10, ID_SEED_LENGNT - 1);
 const ID_SEED_MARK = "@";
 
-
+/**
+ * 返回字符串（null值转换为空串）
+ * @param value 字符串
+ * @returns 字符串
+ */
 export function stringValue(value: string): string {
     if (isEmpty(value)) {
         return "";
@@ -57,6 +61,12 @@ export function urlParameter(value: any): string {
     return result;
 }
 
+/**
+ * 生成随机字符串
+ * @param length 输出长度
+ * @param src 使用的字符列表（默认使用数字和小写字母）
+ * @returns 随机字串
+ */
 export function randomString(length: number, src?: string): string {
     let template = "1234567890abcdefghijklmnopqrstuvwxyz";
     let t = template;
@@ -168,6 +178,11 @@ export function isNumber(value: string | number): boolean {
         !isNaN(Number(value.toString())));
 }
 
+/**
+ * 检查是否整数
+ * @param value 输入值
+ * @returns 结果
+ */
 export function isInteger(value: number): boolean {
     return Number(value) === Math.round(value);
 }
@@ -183,6 +198,11 @@ export function toNumber(value: any) {
 }
 
 // #region 日期处理
+/**
+ * 将日期转换为毫秒值
+ * @param date 日期
+ * @returns 毫秒值
+ */
 export function getTimeNumber(date?: Date | string | number) {
     if (!date) {
         return 0;
@@ -279,10 +299,10 @@ export function toDate(date?: Date | string | number) {
 }
 
 /**
- * 两个日期比较
+ * 两个日期的时间差（毫秒）
  * @param date1 
  * @param date2 
- * @returns 
+ * @returns 时间差（毫秒）
  */
 export function compareTime(date1: Date | string | number, date2: Date | string | number) {
     let d1 = new Date(date1);
