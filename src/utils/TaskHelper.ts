@@ -8,6 +8,17 @@
 
 import { Average } from "./Average";
 
+/**
+ * 任务线程调度
+ * @param T 线程返回对象
+ * @example
+ * const task = new Task();
+ * task.onTaskDone((status,result,data)=>{
+ *     console.log("process done! remain: ",status.remainCount);
+ * });
+ * task.run(()=>{wait(1000)},"wait");
+ * await task.wait();
+ */
 export class Task<T> {
     private eventTask: "onTaskDone" = "onTaskDone";
     private listeners: { [event: string]: EventListener<T>[] } = {};
@@ -15,7 +26,7 @@ export class Task<T> {
     private maxCount: number = 3;
     private taskCount: number = 0;
     private act_list: { id: number, action: () => Promise<T>, data?: any }[] = [];
-    private timeCalc: RemainTime = { process: 0, remain: 0 } as RemainTime;
+    private timeCalc: TaskStatus = { process: 0, remain: 0 } as TaskStatus;
 
     private taskStartTime = Date.now();
     private taskStarted = false;
@@ -23,6 +34,10 @@ export class Task<T> {
     private taskProcessTimes: number[] = [];
     private taskAve = new Average();
 
+    /**
+     * 构造函数
+     * @param count 同时执行线程数
+     */
     constructor(count: number = 3) {
         this.maxCount = count;
         this.maxCount = this.maxCount > 0 ? this.maxCount : 3;
@@ -30,7 +45,7 @@ export class Task<T> {
 
     /**
      * 加入执行线程
-     * @param action 调用方法
+     * @param action 调用异步方法
      */
     public run(action: () => Promise<T>, data?: any) {
         if (!this.taskStarted) {
@@ -70,10 +85,16 @@ export class Task<T> {
         });
     }
 
+    /**
+     * 停止任务（清空队列）
+     */
     public stop() {
         this.act_list = [];
     }
 
+    /**
+     * 重置任务统计数据
+     */
     public timeReset() {
         this.taskStartTime = Date.now();
         this.taskDoneCount = 0;
@@ -81,6 +102,10 @@ export class Task<T> {
         this.taskStarted = true;
     }
 
+    /**
+     * 单个线程完成时
+     * @param callback 回调方法
+     */
     public onTaskDone(callback: EventListener<T>) {
         if (!this.listeners[this.eventTask]) {
             this.listeners[this.eventTask] = [];
@@ -164,10 +189,14 @@ export async function wait(ms: number, returnFlag: () => boolean) {
 }
 
 interface EventListener<T> {
-    (time: RemainTime, result?: T, data?: any): void;
+    (status: TaskStatus, result?: T, data?: any): void;
 }
 
-export interface RemainTime {
+/**
+ * 任务执行状态
+ * @see {@link Task}
+ */
+export interface TaskStatus {
     /** 单条记录处理时长（毫秒） */
     process: number;
     /** 任务剩余时长（毫秒） */

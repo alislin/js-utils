@@ -21,35 +21,6 @@ concurrency:
   group: "pages"
   cancel-in-progress: false
 
-# jobs:
-#   # Single deploy job since we're just deploying
-#   deploy:
-#     environment:
-#       name: github-pages
-#       url: ${{ steps.deployment.outputs.page_url }}
-#     runs-on: ubuntu-latest
-#     steps:
-#       - name: Checkout
-#         uses: actions/checkout@v4
-#         with:
-#           node-version: 20
-#           registry-url: https://registry.npmjs.org/        
-#       - run: npm i
-#       - run: npm run docs
-#       - name: Setup Pages
-#         uses: actions/configure-pages@v5
-#       - name: Upload artifact
-#         uses: actions/upload-pages-artifact@v3
-#         with:
-#           # Upload entire repository
-#           path: './docs'
-#       - name: Deploy to GitHub Pages
-#         id: deployment
-#         uses: actions/deploy-pages@v4
-#         with:
-#           github_token: ${{ secrets.GITHUB_TOKEN }}
-#           publish_dir: ./docs # 调整为你的文档目录路径
-#           cleanup: false # 是否清理发布目录
 jobs:
   # Build job
   build:
@@ -83,4 +54,3 @@ jobs:
         # uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.TOKEN }}
-          # publish_dir: ./docs

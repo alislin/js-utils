@@ -13,6 +13,20 @@ interface HasherState {
     state: number[];
 };
 
+/**
+ * MD5 计算
+ * @example 
+ * // 使用示例
+ * const data = {
+ *     name: 'John Doe',
+ *     email: 'john.doe@example.com'
+ * };
+ * const jsonString = JSON.stringify(data);
+ * const hash1 = md5Dtr(jsonString);
+ * const hash2 = md5(data);
+ * const hash3 = Md5.hashStr(data);
+ * console.log('MD5 Hash:', hash1,hash2,hash3);
+ */
 export class Md5 {
 
     /**
@@ -42,7 +56,7 @@ export class Md5 {
             .appendAsciiStr(str)
             .end(raw);
     }
-        // Private Static Variables
+    // Private Static Variables
     private static stateIdentity = new Int32Array([1732584193, -271733879, -1732584194, 271733878]);
     private static buffer32Identity = new Int32Array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
     private static hexChars = '0123456789abcdef';
@@ -72,7 +86,7 @@ export class Md5 {
         return ho.join('');
     }
 
-    private static _md5cycle(x: Int32Array|Uint32Array, k: Int32Array|Uint32Array) {
+    private static _md5cycle(x: Int32Array | Uint32Array, k: Int32Array | Uint32Array) {
         let a = x[0];
         let b = x[1];
         let c = x[2];
@@ -426,24 +440,37 @@ export class Md5 {
 //     throw new Error('Md5 self test failed.');
 // }
 
+/**
+ * 计算字串 MD5 值
+ * @param s 输入值
+ * @returns hash
+ * @example 
+ * // 使用示例
+ * const data = {
+ *     name: 'John Doe',
+ *     email: 'john.doe@example.com'
+ * };
+ * const jsonString = JSON.stringify(data);
+ * const hash1 = md5Dtr(jsonString);
+ */
 export function md5Str(s: string): string {
     return Md5.hashStr(s);
 }
 
+/**
+ * 计算对象 MD5 值
+ * @param data 输入对象
+ * @returns hash
+ * @example 
+ * // 使用示例
+ * const data = {
+ *     name: 'John Doe',
+ *     email: 'john.doe@example.com'
+ * };
+ * const hash2 = md5(data);
+ */
 export function md5(data: any): string {
     const jsonString = JSON.stringify(data);
     const hash = Md5.hashStr(jsonString);
     return hash;
 }
-
-
-// // 使用示例
-// const data = {
-//     name: 'John Doe',
-//     email: 'john.doe@example.com'
-// };
-
-// const jsonString = JSON.stringify(data);
-// const hash = md5(jsonString);
-
-// console.log('MD5 Hash:', hash);

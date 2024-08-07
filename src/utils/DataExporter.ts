@@ -7,7 +7,11 @@
  */
 
 export interface DataExportOption {
-    //** 请求命令 */
+    /**
+     * 请求命令 (可通过复制curl命令，调用 executeCurl 方法获取)
+    * @example const command = executeCurl(curlString)
+    * @see {@link executeCurl}
+     */
     command: HttpCommand,
     /** 页码 */
     pageIndex: string,

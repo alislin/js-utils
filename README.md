@@ -17,4 +17,4 @@ view Api document
 npx typedoc
 ```
 
-or visit this:[Api Doc](https://alislin.github.io/js-utils)
+or visit this: [Api Doc](https://alislin.github.io/js-utils)
