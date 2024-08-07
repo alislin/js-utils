@@ -65,6 +65,9 @@ jobs:
         run: npm run docs
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
+        with:
+          name: github-pages
+          path: ./docs
 
   # Deployment job
   deploy:
