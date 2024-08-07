@@ -82,5 +82,5 @@ jobs:
       #   uses: actions/deploy-pages@v4
         uses: peaceiris/actions-gh-pages@v4
         with:
-          token: ${{ secrets.TOKEN }}
+          github_token: ${{ secrets.TOKEN }}
           # publish_dir: ./docs
