@@ -2,15 +2,15 @@
  * @Author: Lin Ya
  * @Date: 2024-03-26 15:49:54
  * @LastEditors: Lin Ya
- * @LastEditTime: 2024-07-17 17:17:29
+ * @LastEditTime: 2024-08-08 11:41:57
  * @Description: 数据导出方法
  */
 
 export interface DataExportOption {
     /**
-     * 请求命令 (可通过复制curl命令，调用 executeCurl 方法获取)
-    * @example const command = executeCurl(curlString)
-    * @see {@link executeCurl}
+     * 请求命令 (可通过复制curl命令，调用 parseCurl 方法获取)
+    * @example const command = parseCurl(curlString)
+    * @see {@link parseCurl}
      */
     command: HttpCommand,
     /** 页码 */
@@ -27,16 +27,31 @@ export interface DataExportOption {
     pageRange?: string,
 }
 
+/**
+ * 请求命令 (可通过复制curl命令，调用 parseCurl 方法获取)
+* @example const command = parseCurl(curlString)
+* @see {@link parseCurl}
+ */
 export interface HttpCommand {
+    /** 请求地址 */
     url: string;
+    /** 请求方法（get,post,put,delete） */
     method: string;
+    /** 请求 header 数据 */
     headers: { [key: string]: string };
+    /** 请求 body 数据 */
     body?: any;
 }
 
+/**
+ * 参数映射
+ */
 export interface ParamMap {
+    /** 参数类型 */
     type: string;
+    /** 参数路径 */
     path: string;
+    /** 参数名称 */
     name?: string;
 }
 
@@ -135,6 +150,12 @@ function parseRange(requestRange?: string) {
     return result;
 }
 
+/**
+ * 在源对象中获取指定属性对象
+ * @param obj 源对象
+ * @param PropertyPath 属性路径
+ * @returns 属性对象
+ */
 export function getProperty(obj: any, PropertyPath?: string) {
     if (!PropertyPath || PropertyPath === null || PropertyPath === "") {
         return undefined;
@@ -169,6 +190,13 @@ export function getProperty(obj: any, PropertyPath?: string) {
     return targetObj
 }
 
+/**
+ * 在源对象中设置属性值
+ * @param obj 源对象
+ * @param propertyPath 属性路径
+ * @param value 属性值
+ * @returns 
+ */
 export function setProperty(obj: any, propertyPath: string, value: any): any {
     if (!propertyPath || propertyPath === null || propertyPath === "") {
         return undefined;
@@ -191,6 +219,11 @@ export function setProperty(obj: any, propertyPath: string, value: any): any {
     currentObj[properties[properties.length - 1]] = value;
 }
 
+/**
+ * 获取请求地址中的参数对象
+ * @param url 请求地址
+ * @returns 参数对象
+ */
 export function getQueryParams(url: string) {
     const params = new URLSearchParams(url.split('?')[1]);
 
@@ -202,6 +235,13 @@ export function getQueryParams(url: string) {
     return parsedParams;
 }
 
+/**
+ * 更新请求地址中的指定参数
+ * @param url 请求地址
+ * @param paramName 参数名
+ * @param newValue 参数值
+ * @returns 请求地址
+ */
 export function setQueryParam(url: string, paramName: string, newValue: string) {
     const params = new URLSearchParams(url.split('?')[1]);
 
@@ -218,7 +258,7 @@ export function setQueryParam(url: string, paramName: string, newValue: string) 
 
 /**
  * 解析Curl命令
- * @param curlCommand Curl命令
+ * @param curlCommand Curl命令（可通过浏览器中复制 curl 指令获取）
  * @returns 
  */
 export function parseCurl(curlCommand: string): HttpCommand {
