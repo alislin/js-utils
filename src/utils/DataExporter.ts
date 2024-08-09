@@ -2,10 +2,66 @@
  * @Author: Lin Ya
  * @Date: 2024-03-26 15:49:54
  * @LastEditors: Lin Ya
- * @LastEditTime: 2024-08-08 11:41:57
+ * @LastEditTime: 2024-08-09 13:12:52
  * @Description: 数据导出方法
  */
 
+/**
+ * 导出选项
+ * @example
+// response data:
+// {
+//   "data": {
+//     "total": "4730",
+//     "pages": "473",
+//     "items": [
+//       {
+//         "id": "1388300880995165806",
+//         "name": "Jake"
+//       },
+//       {
+//         "id": "1388300880995165807",
+//         "name": "Mike"
+//       },
+//       {
+//         "id": "1388300880995165808",
+//         "name": "Fake"
+//       }
+//     ]
+//   }
+// }
+
+const url = `curl 'https://www.data.com/paged' \
+  -H 'accept: application/json' \
+  -H 'accept-language: zh-CN,zh;q=0.9,en;q=0.8' \
+  -H 'authorization: Bearer token_value' \
+  -H 'content-type: application/json' \
+  -H 'origin: https://www.data.com' \
+  -H 'priority: u=1, i' \
+  -H 'referer: https://www.data.com/' \
+  -H 'sec-ch-ua: "Not/A)Brand";v="8", "Chromium";v="126", "Microsoft Edge";v="126"' \
+  -H 'sec-ch-ua-mobile: ?0' \
+  -H 'sec-ch-ua-platform: "Windows"' \
+  -H 'sec-fetch-dest: empty' \
+  -H 'sec-fetch-mode: cors' \
+  -H 'sec-fetch-site: same-site' \
+  -H 'user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36 Edg/126.0.0.0' \
+  --data-raw '{"page":1,"size":10,"qyear":"2023","qId":"850257354107651400","qType":"ENTER","q":"l3"}'`
+const command = parseCurl(url);
+const req = {
+  command: command,
+  pageIndex: "page",
+  pageSize: "size",
+  pageTotal: "data.total",
+  listItem: "data.items",
+  pageRange: "2-5"
+};
+const list = await dataExport(req, (total, index) => { });
+
+// if option in query url, use '_urlParams.' as root node. eg: https://www.data.com/page?page=1&size=10
+// pageIndex = "_urlParams.page",
+// pageSize = "_urlParams.size",
+ */
 export interface DataExportOption {
     /**
      * 请求命令 (可通过复制curl命令，调用 parseCurl 方法获取)
@@ -61,7 +117,60 @@ export interface ParamMap {
  * 数据导出
  * @param options 请求参数
  * @param onProgress 执行进度回调
- * @returns 
+ * @returns 数据列表
+ * @example
+// response data:
+// {
+//   "data": {
+//     "total": "4730",
+//     "pages": "473",
+//     "items": [
+//       {
+//         "id": "1388300880995165806",
+//         "name": "Jake"
+//       },
+//       {
+//         "id": "1388300880995165807",
+//         "name": "Mike"
+//       },
+//       {
+//         "id": "1388300880995165808",
+//         "name": "Fake"
+//       }
+//     ]
+//   }
+// }
+
+const url = `curl 'https://www.data.com/paged' \
+  -H 'accept: application/json' \
+  -H 'accept-language: zh-CN,zh;q=0.9,en;q=0.8' \
+  -H 'authorization: Bearer token_value' \
+  -H 'content-type: application/json' \
+  -H 'origin: https://www.data.com' \
+  -H 'priority: u=1, i' \
+  -H 'referer: https://www.data.com/' \
+  -H 'sec-ch-ua: "Not/A)Brand";v="8", "Chromium";v="126", "Microsoft Edge";v="126"' \
+  -H 'sec-ch-ua-mobile: ?0' \
+  -H 'sec-ch-ua-platform: "Windows"' \
+  -H 'sec-fetch-dest: empty' \
+  -H 'sec-fetch-mode: cors' \
+  -H 'sec-fetch-site: same-site' \
+  -H 'user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36 Edg/126.0.0.0' \
+  --data-raw '{"page":1,"size":10,"qyear":"2023","qId":"850257354107651400","qType":"ENTER","q":"l3"}'`
+const command = parseCurl(url);
+const req = {
+  command: command,
+  pageIndex: "page",
+  pageSize: "size",
+  pageTotal: "data.total",
+  listItem: "data.items",
+  pageRange: "2-5"
+};
+const list = await dataExport(req, (total, index) => { });
+
+// if option in query url, use '_urlParams.' as root node. eg: https://www.data.com/page?page=1&size=10
+// pageIndex = "_urlParams.page",
+// pageSize = "_urlParams.size",
  */
 export async function dataExport(options: DataExportOption, onProgress?: (total: number, v: number) => void) {
     onProgress && onProgress(0, 0);
