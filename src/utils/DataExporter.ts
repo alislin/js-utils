@@ -264,6 +264,16 @@ function parseRange(requestRange?: string) {
  * @param obj 源对象
  * @param PropertyPath 属性路径
  * @returns 属性对象
+ * @example
+const data = {
+    id: 1,
+    name: "demo",
+    info: {
+        title: "Mr"
+    }
+}
+const title = getProperty(data, "info.title");
+// title: "Mr"
  */
 export function getProperty(obj: any, PropertyPath?: string) {
     if (!PropertyPath || PropertyPath === null || PropertyPath === "") {
@@ -305,6 +315,16 @@ export function getProperty(obj: any, PropertyPath?: string) {
  * @param propertyPath 属性路径
  * @param value 属性值
  * @returns 
+ * @example
+const data = {
+    id: 1,
+    name: "demo",
+    info: {
+        title: "Mr"
+    }
+}
+setProperty(data, "info.title","Who");
+// title: "Who"
  */
 export function setProperty(obj: any, propertyPath: string, value: any): any {
     if (!propertyPath || propertyPath === null || propertyPath === "") {
@@ -332,6 +352,13 @@ export function setProperty(obj: any, propertyPath: string, value: any): any {
  * 获取请求地址中的参数对象
  * @param url 请求地址
  * @returns 参数对象
+ * @example
+const url = "http://localhost?id=1&name=mike";
+const query = getQueryParams(url);
+query: {
+    id: "1",
+    name: "mike"
+}
  */
 export function getQueryParams(url: string) {
     const params = new URLSearchParams(url.split('?')[1]);
