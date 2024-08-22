@@ -5,7 +5,6 @@
 * @LastEditTime: 2024-06-20 08:27:25
 * @Description: 数据请求
 */
-import { isEmpty } from "./StringHelper";
 export class Fetcher {
 
     /** 错误数据返回对象 */
@@ -128,14 +127,6 @@ export class Fetcher {
             };
         }
         return this.Fetch<T>(url, requestInit);
-    }
-
-    public Download(url: string) {
-        if (isEmpty(url)) {
-            this.NotifyError("无效的下载地址");
-            return;
-        }
-        window.location.href = url;
     }
 
     /**
