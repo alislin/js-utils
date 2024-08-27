@@ -2,7 +2,7 @@
  * @Author: Lin Ya
  * @Date: 2024-07-16 11:25:43
  * @LastEditors: Lin Ya
- * @LastEditTime: 2024-07-26 10:44:08
+ * @LastEditTime: 2024-08-27 09:45:38
  * @Description: 任务助手
  */
 
@@ -168,11 +168,12 @@ export class Task<T> {
 
 /**
  * 等待状态完成
- * @param ms 检查间隔时间（毫秒）
- * @param returnFlag 检查方法
+ * @param returnFlag 检查方法（返回true时退出等待）
+ * @param ms 检查间隔时间（毫秒，默认100）
  * @returns 
  */
-export async function wait(ms: number, returnFlag: () => boolean) {
+export async function wait(returnFlag: () => boolean, ms?: number) {
+    const delay = ms && ms > 0 ? ms : 100;
     return new Promise<void>((resolve) => {
         if (returnFlag()) {
             resolve();
@@ -183,7 +184,7 @@ export async function wait(ms: number, returnFlag: () => boolean) {
                     clearInterval(interval);
                     resolve();
                 }
-            }, 100);
+            }, delay);
         }
     });
 }
