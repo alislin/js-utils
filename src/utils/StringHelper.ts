@@ -92,20 +92,25 @@ export function randomString(length: number, src?: string): string {
  * @param seeds 添加字串（如果为空，则添加随机字符）
  * @returns 增加随机字符的id
  */
-export function setNodeId(id: string, ...seeds: string[]) {
+export function setNodeId(id?: string, ...seeds: (string | undefined)[]) {
     let mark = <string><unknown>Math.round(Math.random() * OFFSET + OFFSET);
 
-    if (seeds.length > 0) {
-        let seed = seeds[0];
-        for (let i = 1; i < seeds.length; i++) {
-            const item = seeds[i];
-            if (!isEmpty(item)) {
-                seed += ID_SEED_MARK + item;
-            }
-        }
-        mark = seed ?? mark;
-    }
-    return id + ID_SEED_MARK + mark;
+    const list = [id, ...seeds].filter(x => !isEmpty(x));
+    return list.join(ID_SEED_MARK);
+
+    // if (seeds.length > 0) {
+    //     let seed = seeds[0];
+    //     for (let i = 1; i < seeds.length; i++) {
+    //         const item = seeds[i];
+    //         if (!isEmpty(item)) {
+    //             seed += ID_SEED_MARK + item;
+    //         }
+    //     }
+    //     mark = seed ?? mark;
+    // }
+
+    // if (isEmpty(id)) return mark;
+    // return id + ID_SEED_MARK + mark;
 }
 
 /**

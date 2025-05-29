@@ -1,6 +1,13 @@
-import { getDate } from "../src/utils/StringHelper";
-// require("../src/utils/StringHelper")
-test("获取日期字串", () => {
-    expect(getDate("2023-10-6", " ")).toBe("2023 10 06");
-    expect(getDate(1722838816923)).toBe("2024-08-05");
-})
+import { setNodeId } from "../src/utils/StringHelper";
+// import { describe, expect, test } from '@jest/globals';
+
+test("seed id test", () => {
+    expect(setNodeId("t")).toBe("t");
+    expect(setNodeId("t", "x")).toBe("t@x");
+    expect(setNodeId("t", "x", "y")).toBe("t@x@y");
+    expect(setNodeId("t", "x", "y", "z")).toBe("t@x@y@z");
+    expect(setNodeId("t", undefined, "y", "z")).toBe("t@y@z");
+    expect(setNodeId(undefined, "x", "y")).toBe("x@y");
+    expect(setNodeId("t", "x@a")).toBe("t@x@a");
+    expect(setNodeId("t", "x@a", "y", "z")).toBe("t@x@a@y@z");
+});

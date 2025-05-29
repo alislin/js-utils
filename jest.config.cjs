@@ -77,7 +77,7 @@ const config = {
   // ],
 
   // An array of file extensions your modules use
-  // moduleFileExtensions: [
+  moduleFileExtensions: ["json", "js", "jsx", "ts"],
   //   "js",
   //   "mjs",
   //   "cjs",
@@ -90,6 +90,14 @@ const config = {
 
   // A map from regular expressions to module names or to arrays of module names that allow to stub out resources with a single module
   // moduleNameMapper: {},
+  moduleNameMapper: {
+    "@/(.*)": ["<rootDir>/src/src/$1"],
+    //   "@models/*":["src/models/*"],
+    "@api/(.*)": ["<rootDir>/src/api/$1"],
+    "@utils/(.*)": ["<rootDir>/src/utils/$1"],
+    "@stores/(.*)": ["<rootDir>/src/stores/$1"],
+    "@share/(.*)": ["<rootDir>/src/share/$1"],
+  },
 
   // An array of regexp pattern strings, matched against all module paths before considered 'visible' to the module loader
   // modulePathIgnorePatterns: [],
@@ -175,6 +183,11 @@ const config = {
 
   // A map from regular expressions to paths to transformers
   // transform: undefined,
+  transform: {
+    "^.+\\.ts?$": "ts-jest",
+    "^.+\\.(js|jsx)?$": "babel-jest", // 遇到 js jsx 等转成 es5
+  },
+  transformIgnorePatterns: ["<rootDir>/tests/__mocks__/", "/node_modules/"],
 
   // An array of regexp pattern strings that are matched against all source file paths, matched files will skip transformation
   // transformIgnorePatterns: [

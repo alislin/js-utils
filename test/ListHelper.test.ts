@@ -1,4 +1,6 @@
 import { listEqual,listSum } from "../src/utils/ListHelper";
+// import { describe, expect, test } from '@jest/globals';
+
 test("listSum", () => {
     const list = [1, 2, 3, 4, 5];
     expect(listSum(list, x => x)).toBe(15);
