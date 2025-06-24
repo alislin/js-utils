@@ -2,7 +2,7 @@
  * @Author: Lin Ya
  * @Date: 2022-06-30 20:29:34
  * @LastEditors: Lin Ya
- * @LastEditTime: 2024-07-17 10:13:01
+ * @LastEditTime: 2025-06-24 16:51:05
  * @Description: string 帮助方法
  */
 
@@ -483,4 +483,141 @@ export function objectEqual() {
     }
 
     return { check, checkOnly };
+}
+
+/**
+ * 格式化括号
+ * @param src 输入字串
+ * @param tag 格式化标记
+ * @returns 返回括号内容增加 html 标记包裹
+ * @example 
+ * const src = "content (stop fire)";
+ * const result = formatBracket(src,"message");
+ * // result: content (<message>stop fire</message>)
+ */
+export function formatBracket(src: string, tag: string): string {
+    // 使用栈来处理嵌套括号，严格匹配相同类型的括号
+    const stack: { index: number; openChar: string; closeChar: string }[] = [];
+    const pairs: { start: number; end: number; openChar: string; closeChar: string; offset: number }[] = [];
+
+    // 定义括号类型映射
+    const bracketPairs: { [key: string]: string } = {
+        '[': ']',
+        '(': ')',
+        '（': '）'
+    };
+
+    let inHtmlTag = false;
+    let inHtmlAttribute = false;
+
+    // 首先找出所有匹配的括号对，跳过HTML标签属性中的内容
+    for (let i = 0; i < src.length; i++) {
+        const char = src[i];
+
+        // 检测HTML标签开始和属性
+        if (char === '<' && !inHtmlTag) {
+            inHtmlTag = true;
+            continue;
+        }
+
+        if (char === '>' && inHtmlTag) {
+            inHtmlTag = false;
+            inHtmlAttribute = false;
+            continue;
+        }
+
+        if (inHtmlTag && char === ' ' && !inHtmlAttribute) {
+            inHtmlAttribute = true;
+            continue;
+        }
+
+        // 如果在HTML标签属性中，跳过括号处理
+        if (inHtmlTag && inHtmlAttribute) {
+            continue;
+        }
+
+        // 检查是否是开括号
+        if (bracketPairs[char]) {
+            stack.push({
+                index: i,
+                openChar: char,
+                closeChar: bracketPairs[char]
+            });
+            continue;
+        }
+
+        // 检查是否是闭括号
+        if (stack.length > 0 && Object.values(bracketPairs).includes(char)) {
+            let jCount = 0;
+            for (let j = stack.length - 1; j >= 0; j--) {
+                const last = stack[j];
+                jCount++;
+                if (char === last.closeChar) {
+                    for (let k = 1; k < jCount - 1; k++) {
+                        // 不匹配的闭括号将被忽略
+                        stack.pop();
+                    }
+                    const popLast = stack.pop()!;
+                    pairs.push({
+                        start: last.index,
+                        end: i,
+                        openChar: last.openChar,
+                        closeChar: last.closeChar,
+                        offset: 0,
+                    });
+                    break;
+                }
+            }
+        }
+    }
+
+    // 按从内到外的顺序处理括号对（避免嵌套问题）
+    pairs.sort((a, b) => b.start - a.start);
+
+    // 第二阶段：应用替换，跟踪偏移量
+    let result = src;
+    let offset = 0; // 跟踪由于插入标签导致的偏移
+    // 上一个位置
+    const lastPostion = { start: 0, end: src.length };
+
+    for (const pair of pairs) {
+        const originalStart = pair.start;
+        const originalEnd = pair.end;
+
+        // 检查上一个处理位置与当前位置关系
+        let adjustedStart = originalStart;
+        let adjustedEnd = originalEnd;
+        for (const pair_offset of pairs) {
+            if (pair.start === pair_offset.start) {
+                break;
+            }
+            if (adjustedStart > pair_offset.start) {
+                adjustedStart += pair_offset.offset;
+            }
+            if (adjustedEnd > pair_offset.end) {
+                adjustedEnd += pair_offset.offset;
+            }
+        }
+        lastPostion.start = originalStart;
+        lastPostion.end = originalEnd;
+
+        const content = result.slice(adjustedStart + 1, adjustedEnd);
+
+        // 计算新内容的长度
+        const newContent = `${pair.openChar}<${tag}>${content}</${tag}>${pair.closeChar}`;
+        const newLength = newContent.length;
+        const oldLength = originalEnd - originalStart + 1;
+
+        // 执行替换
+        result =
+            result.slice(0, adjustedStart) +
+            newContent +
+            result.slice(adjustedEnd + 1);
+
+        // 更新偏移量
+        offset += (newLength - oldLength);
+        pair.offset = newLength - oldLength;
+    }
+
+    return result;
 }
