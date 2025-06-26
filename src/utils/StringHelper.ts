@@ -2,7 +2,7 @@
  * @Author: Lin Ya
  * @Date: 2022-06-30 20:29:34
  * @LastEditors: Lin Ya
- * @LastEditTime: 2025-06-26 11:59:35
+ * @LastEditTime: 2025-06-26 13:50:46
  * @Description: string 帮助方法
  */
 
@@ -637,15 +637,15 @@ export function formatBracket(src: string, tag: string): string {
  * 
  * @example
  * // 使用X作为掩码输出字符
- * mask("1234567890", "##******##", "*", "X"); // "12XXXXXX90"
+ * mask("1234567890", "##******##", "left", "*", "X"); // "12XXXXXX90"
  * 
  * @example
  * // 右对齐，模板不足时用#填充（即保留原字符）
- * mask("123456", "###", "#", "*", "right"); // "123456"
+ * mask("123456", "###", "right", "#"); // "123456"
  * 
  * @example
  * // 左对齐，模板不足时用*填充（即需要掩码）
- * mask("123456", "###", "*", "X", "left"); // "123XXX"
+ * mask("123456", "###", "left", "*", "X"); // "123XXX"
  */
 export function mask(src: string, mask: string, align: "left" | "right" = "left", fillMask: "#" | "*" = "*", maskMark: string = "*"): string {
     // # 原样显示，* 使用 maskMark 替换
