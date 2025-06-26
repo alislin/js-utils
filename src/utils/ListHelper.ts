@@ -2,7 +2,7 @@
  * @Author: Lin Ya
  * @Date: 2022-11-03 17:28:19
  * @LastEditors: Lin Ya
- * @LastEditTime: 2024-05-23 12:08:16
+ * @LastEditTime: 2025-06-26 18:02:18
  * @Description: list 方法
  */
 
@@ -277,4 +277,17 @@ export async function loadByPage<TResult, Response>(
     }
 
     return list;
+}
+
+/**
+ * 从键值列表生成对象
+ * @param keys 键值列表
+ * @returns 对象
+ */
+export function listToObject(keys: { key: string, value: any }[]): { [key: string]: any } {
+    const result: { [key: string]: any } = {};
+    keys.forEach((item, index) => {
+        result[item.key] = item.value;
+    });
+    return result;
 }
