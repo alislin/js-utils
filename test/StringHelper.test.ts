@@ -1,4 +1,4 @@
-import { formatBracket, setNodeId } from "../src/utils/StringHelper";
+import { formatBracket, mask, setNodeId } from "../src/utils/StringHelper";
 // import { describe, expect, test } from '@jest/globals';
 
 test("seed id test", () => {
@@ -101,5 +101,65 @@ describe('formatBracket function', () => {
         const input = "SYSTEM 添加了 李睿喆 的支付单（单号：<a data-target=\"pay_order\" data-id=\"cuk1i9soqock7brvenb0\">SK39G-202502-000831</a>，金额：21300，收费方式：[[在线支付:1400], [在线支付:15700], [在线支付:4200]]）";
         const expected = "SYSTEM 添加了 李睿喆 的支付单（<message>单号：<a data-target=\"pay_order\" data-id=\"cuk1i9soqock7brvenb0\">SK39G-202502-000831</a>，金额：21300，收费方式：[<message>[<message>在线支付:1400</message>], [<message>在线支付:15700</message>], [<message>在线支付:4200</message>]</message>]）</message>）";
         expect(formatBracket(input, tag)).toBe(expected);
+    });
+});
+
+describe('mask function', () => {
+    // 1. 基本功能测试
+    test('基本掩码功能', () => {
+        expect(mask("1234567890", "##******##")).toBe("12******90");
+        expect(mask("ABCDEFGHIJ", "###****###")).toBe("ABC****HIJ");
+    });
+
+    // 2. 自定义掩码字符测试
+    test('使用自定义掩码字符', () => {
+        expect(mask("1234567890", "##******##", "left", "*", "X")).toBe("12XXXXXX90");
+        expect(mask("secret", "**####", "left", "*", "?")).toBe("??cret");
+    });
+
+    // 3. 填充模式测试
+    test('模板长度不足时的填充', () => {
+        // 填充模式为*（默认）
+        expect(mask("12345678", "##**")).toBe("12******");
+        // 填充模式为#
+        expect(mask("12345678", "##**", "left", "#")).toBe("12**5678");
+    });
+
+    // 4. 对齐方式测试
+    test('不同对齐方式', () => {
+        // 左对齐（默认）
+        expect(mask("12345", "###", "left", "*", "*")).toBe("123**");
+        // 右对齐
+        expect(mask("12345", "###", "right", "*", "*")).toBe("**345");
+        expect(mask("123456", "#**##", "right", "*", "X")).toBe("X2XX56");
+        expect(mask("123456", "#**##", "right", "#", "X")).toBe("12XX56");
+    });
+
+    // 5. 边界情况测试
+    test('边界情况处理', () => {
+        // 空字符串
+        expect(mask("", "####")).toBe("");
+        // 模板全为#
+        expect(mask("1234", "####")).toBe("1234");
+        // 模板全为*
+        expect(mask("1234", "****", "left", "*", "X")).toBe("XXXX");
+        // 源字符串短于模板
+        expect(mask("12", "####****")).toBe("12");
+        expect(mask("12", "####****", "right")).toBe("**");
+    });
+
+    // 6. 特殊字符测试
+    test('特殊字符处理', () => {
+        expect(mask("中文测试", "##**", "left", "*", "X")).toBe("中文XX");
+        expect(mask("a1b2c3", "#*#*#*")).toBe("a*b*c*");
+    });
+
+    // 7. 非法模板测试
+    test('非法模板字符', () => {
+        // 模板包含非#*字符（根据实现可能会被忽略或处理）
+        expect(mask("123456", "##a**##")).toBe("12***6");
+        expect(mask("123456", "##a**##", "left", "#")).toBe("123**6");
+        expect(mask("123456", "##?**##", "right")).toBe("1***56");
+        expect(mask("123456", "##?**##", "right", "#")).toBe("12**56");
     });
 });

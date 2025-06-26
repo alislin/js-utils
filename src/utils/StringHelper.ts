@@ -2,7 +2,7 @@
  * @Author: Lin Ya
  * @Date: 2022-06-30 20:29:34
  * @LastEditors: Lin Ya
- * @LastEditTime: 2025-06-24 16:51:05
+ * @LastEditTime: 2025-06-26 11:59:35
  * @Description: string 帮助方法
  */
 
@@ -620,4 +620,63 @@ export function formatBracket(src: string, tag: string): string {
     }
 
     return result;
+}
+
+/**
+ * 对字符串进行掩码处理
+ * @param src 原始字符串
+ * @param mask 掩码模板字符串，由'#'和'*'组成，'#'表示保留原字符，'*'表示需要掩码的位置
+ * @param fillMask 当模板长度不足时，用于填充模板的字符（只能是'#'或'*'），默认为'*'
+ * @param maskMark 实际输出时用于替换模板中'*'的字符，默认为'*'（可以是任意字符）
+ * @param align 长度不一致时的对齐方式（'left'或'right'），默认为'left'
+ * @returns 处理后的掩码字符串
+ * 
+ * @example
+ * // 基本用法：保留前2后2，中间用*掩码
+ * mask("1234567890", "##******##"); // "12******90"
+ * 
+ * @example
+ * // 使用X作为掩码输出字符
+ * mask("1234567890", "##******##", "*", "X"); // "12XXXXXX90"
+ * 
+ * @example
+ * // 右对齐，模板不足时用#填充（即保留原字符）
+ * mask("123456", "###", "#", "*", "right"); // "123456"
+ * 
+ * @example
+ * // 左对齐，模板不足时用*填充（即需要掩码）
+ * mask("123456", "###", "*", "X", "left"); // "123XXX"
+ */
+export function mask(src: string, mask: string, align: "left" | "right" = "left", fillMask: "#" | "*" = "*", maskMark: string = "*"): string {
+    // # 原样显示，* 使用 maskMark 替换
+    const result: string[] = [];
+    const srcArr = src.split('');
+    const maskArr = mask.split('');
+    const maxLen = Math.max(src.length, mask.length);
+
+    for (let i = 0; i < maxLen; i++) {
+        const srcIdx = align === "left" ? i : src.length - 1 - i;
+        const maskIdx = align === "left" ? i : mask.length - 1 - i;
+
+        const srcChar = srcIdx >= 0 && srcIdx < src.length ? srcArr[srcIdx] : null;
+        let maskChar = maskIdx >= 0 && maskIdx < mask.length ? maskArr[maskIdx] : fillMask;
+
+        if (srcChar === null) break;
+
+        if (maskChar === '#') {
+            result.push(srcChar); // 保留原字符
+        } else if (maskChar === '*') {
+            result.push(maskMark); // 使用指定字符掩码
+        } else {
+            // 理论上不会执行，因为mask只能是#或*
+            if (fillMask === "#") {
+                result.push(srcChar);
+            }
+            else {
+                result.push(maskMark);
+            }
+        }
+    }
+
+    return align === "right" ? result.reverse().join('') : result.join('');
 }
