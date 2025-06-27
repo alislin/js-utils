@@ -2,33 +2,34 @@
  * @Author: Lin Ya
  * @Date: 2025-06-25 09:26:01
  * @LastEditors: Lin Ya
- * @LastEditTime: 2025-06-25 10:20:51
- * @Description: 深度比较两个对象是否相等，支持排除特定键和自定义null/undefined比较
+ * @LastEditTime: 2025-06-27 08:48:09
+ * @Description: 
  */
+
 /**
  * 深度比较两个对象或值是否相等
  * @param query1 第一个要比较的对象或值
  * @param query2 第二个要比较的对象或值
  * @param opt 比较选项
- * @param opt.excludeKeys 要排除比较的键名数组，默认包含"page"
+ * @param opt.excludeKeys 要排除比较的键名数组，默认不排除
  * @param opt.strictNull 是否严格比较null和undefined，false时视null和undefined为相等(默认)
  * @returns 如果两个对象或值相等则返回true，否则返回false
  * @example
  * // 基本使用
- * areQueriesEqual({a: 1}, {a: 1}); // true
+ * areObjectEqual({a: 1}, {a: 1}); // true
  * 
  * // 排除特定键比较
- * areQueriesEqual({a: 1, page: 2}, {a: 1, page: 3}, {excludeKeys: ['page']}); // true
+ * areObjectEqual({a: 1, page: 2}, {a: 1, page: 3}, {excludeKeys: ['page']}); // true
  * 
  * // null和undefined比较
- * areQueriesEqual({a: null}, {a: undefined}); // true
- * areQueriesEqual({a: null}, {a: undefined}, {strictNull: true}); // false
+ * areObjectEqual({a: null}, {a: undefined}); // true
+ * areObjectEqual({a: null}, {a: undefined}, {strictNull: true}); // false
  * 
  * // 嵌套对象比较
- * areQueriesEqual({a: {b: 1}}, {a: {b: 1}}); // true
+ * areObjectEqual({a: {b: 1}}, {a: {b: 1}}); // true
  */
-export function areQueriesEqual(query1: any, query2: any, opt?: { excludeKeys?: string[], strictNull?: boolean }): boolean {
-    const excludeKeys = opt?.excludeKeys ?? ["page"];
+export function areObjectEqual(query1: any, query2: any, opt?: { excludeKeys?: string[], strictNull?: boolean }): boolean {
+    const excludeKeys = opt?.excludeKeys ?? [];
     // 是否严格比较 null 和 undefined ，默认为false, null=undefined
     const strictNull = opt?.strictNull ?? false;
     // 如果两个值严格相等，直接返回true
@@ -75,10 +76,60 @@ export function areQueriesEqual(query1: any, query2: any, opt?: { excludeKeys?: 
 
 
         // 递归比较值
-        if (!areQueriesEqual(val1, val2, { excludeKeys, strictNull })) {
+        if (!areObjectEqual(val1, val2, { excludeKeys, strictNull })) {
             return false;
         }
     }
 
     return true;
+}
+
+/**
+ * 检查对象是否相等
+ */
+export function objectEqual() {
+    let orgData: string = "";
+
+    /**
+     * 仅检查是否相等
+     * @param data 比较对象
+     * @returns 
+     */
+    function checkOnly(data: any, org_data?: any) {
+        if (org_data) {
+            orgData = JSON.stringify(org_data);
+        }
+        const m = JSON.stringify(data);
+        const result = orgData === m;
+        if (result) return true;
+        return false;
+    }
+
+    /**
+     * 检查是否相等，并将新对象记录下来
+     * @param data 比较对象
+     * @returns 
+     */
+    function check(data: any) {
+        const m = JSON.stringify(data);
+        const result = orgData === m;
+        if (result) return true;
+        orgData = m;
+        return false;
+    }
+
+    return { check, checkOnly };
+}
+
+/**
+ * 完全复制对象(创建新对象)
+ * @param obj 
+ * @returns 复制的对象
+ */
+export function clone<T>(obj: T) {
+    if (!obj || obj === null) {
+        return {} as T;
+    }
+    let temp = JSON.stringify(obj);
+    return JSON.parse(temp) as T;
 }

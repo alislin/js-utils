@@ -2,7 +2,7 @@
  * @Author: Lin Ya
  * @Date: 2022-06-30 20:29:34
  * @LastEditors: Lin Ya
- * @LastEditTime: 2025-06-26 13:50:46
+ * @LastEditTime: 2025-06-27 09:29:07
  * @Description: string 帮助方法
  */
 
@@ -314,6 +314,22 @@ export function compareTime(date1: Date | string | number, date2: Date | string 
     let d2 = new Date(date2);
     return d1.getTime() - d2.getTime();
 }
+
+/**
+ * 返回 yyyy-MM-dd HH:mm:ss 字串
+ * @param utc 
+ * @returns 时间字串
+ */
+export function toDateTime(utc: number) {
+    const d = new Date(utc);
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    const hours = String(d.getHours()).padStart(2, '0');
+    const minutes = String(d.getMinutes()).padStart(2, '0');
+    const seconds = String(d.getSeconds()).padStart(2, '0');
+    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+}
 // #endregion
 
 /**
@@ -379,59 +395,6 @@ export function yuanToFen(value: number) {
 //     return result as T;
 // }
 
-/**
- * 完全复制对象(创建新对象)
- * @param obj 
- * @returns 复制的对象
- */
-export function clone<T>(obj: T) {
-    if (!obj || obj === null) {
-        return {} as T;
-    }
-    let temp = JSON.stringify(obj);
-    return JSON.parse(temp) as T;
-}
-
-/**
- * 检查对象是否值相等
- * @param a 
- * @param b 
- * @returns 是否相等
- */
-export function valueEqual<T>(a: T, b: T): boolean {
-    if (!a && !b) return true;
-    if (!a || !b) return false;
-    let m_a = JSON.stringify(a);
-    let m_b = JSON.stringify(b);
-    return m_a === m_b;
-}
-
-/**
- * 获取列表交集
- * @param list1 
- * @param list2 
- * @param equals 相等计算方法
- * @returns 两个列表的交集
- */
-export function intersect<T>(list1: T[], list2: T[], equals?: (x: T, y: T) => boolean) {
-    if (!list1 || !list2) return [];
-
-    let result = list1.filter(x => {
-        let count = list2.filter(y => {
-            if (equals) {
-                if (equals(x, y)) {
-                    return true;
-                }
-                return false;
-            }
-            else {
-                return valueEqual(x, y);
-            }
-        }).length
-        return count > 0;
-    });
-    return result;
-}
 
 export function toDateValue(value: Date | string) {
     let d = new Date(value);
@@ -449,40 +412,87 @@ export function toCharArray(value?: string): string[] {
 }
 
 /**
- * 检查对象是否相等
+ * 生成雪花算法ID（Snowflake ID），一种分布式唯一ID生成算法
+ * 
+ * 雪花ID由以下部分组成：
+ * - 时间戳（从自定义纪元开始的毫秒数）
+ * - 数据中心ID
+ * - 工作节点ID
+ * - 序列号
+ * 
+ * 返回的ID是一个19位字符串，确保不以0开头
+ * 
+ * @param workerId 工作节点ID (默认: 1)
+ * @param datacenterId 数据中心ID (默认: 1)
+ * @returns 返回19位的字符串形式的雪花ID
+ * 
+ * @example
+ * // 生成一个雪花ID
+ * const id = generateSnowflakeId(1, 1);
+ * console.log(id); // 输出类似 "1325624573249634304" 的19位数字字符串
+ * 
+ * @example
+ * // 使用默认参数生成ID
+ * const defaultId = generateSnowflakeId();
+ * console.log(defaultId); // 使用默认workerId和datacenterId生成的ID
  */
-export function objectEqual() {
-    let orgData: string = "";
+export function generateSnowflakeId(workerId: number = 1, datacenterId: number = 1): string {
+    // return "";
 
-    /**
-     * 仅检查是否相等
-     * @param data 比较对象
-     * @returns 
-     */
-    function checkOnly(data: any, org_data?: any) {
-        if (org_data) {
-            orgData = JSON.stringify(org_data);
+    const epoch = 1577836800000n; // Custom epoch (2020-01-01)
+    let sequence = 0n;
+    const sequenceBits = 12n;
+    const workerIdBits = 5n;
+    const datacenterIdBits = 5n;
+    const maxWorkerId = -1n ^ (-1n << workerIdBits);
+    const maxDatacenterId = -1n ^ (-1n << datacenterIdBits);
+    const workerIdShift = sequenceBits;
+    const datacenterIdShift = sequenceBits + workerIdBits;
+    const timestampLeftShift = sequenceBits + workerIdBits + datacenterIdBits;
+    const sequenceMask = -1n ^ (-1n << sequenceBits);
+    let lastTimestamp = -1n;
+
+    function tilNextMillis(lastTimestamp: bigint): bigint {
+        let timestamp = BigInt(Date.now());
+        while (timestamp <= lastTimestamp) {
+            timestamp = BigInt(Date.now());
         }
-        const m = JSON.stringify(data);
-        const result = orgData === m;
-        if (result) return true;
-        return false;
+        return timestamp;
     }
 
-    /**
-     * 检查是否相等，并将新对象记录下来
-     * @param data 比较对象
-     * @returns 
-     */
-    function check(data: any) {
-        const m = JSON.stringify(data);
-        const result = orgData === m;
-        if (result) return true;
-        orgData = m;
-        return false;
+    function generateId(workerId: bigint, datacenterId: bigint): bigint {
+        if (workerId > maxWorkerId || workerId < 0n) {
+            throw new Error(`workerId must be between 0 and ${maxWorkerId}`);
+        }
+        if (datacenterId > maxDatacenterId || datacenterId < 0n) {
+            throw new Error(`datacenterId must be between 0 and ${maxDatacenterId}`);
+        }
+
+        let timestamp = BigInt(Date.now());
+
+        if (timestamp < lastTimestamp) {
+            throw new Error(`Clock moved backwards. Refusing to generate id for ${lastTimestamp - timestamp} milliseconds`);
+        }
+
+        if (lastTimestamp === timestamp) {
+            sequence = (sequence + 1n) & sequenceMask;
+            if (sequence === 0n) {
+                timestamp = tilNextMillis(lastTimestamp);
+            }
+        } else {
+            sequence = 0n;
+        }
+
+        lastTimestamp = timestamp;
+
+        return ((timestamp - epoch) << timestampLeftShift) |
+            (datacenterId << datacenterIdShift) |
+            (workerId << workerIdShift) |
+            sequence;
     }
 
-    return { check, checkOnly };
+    const id = generateId(BigInt(workerId), BigInt(datacenterId));
+    return id.toString().padStart(19, '1'); // Ensure the ID is 19 characters long and does not start with 0
 }
 
 /**

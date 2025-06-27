@@ -2,9 +2,12 @@
  * @Author: Lin Ya
  * @Date: 2022-11-03 17:28:19
  * @LastEditors: Lin Ya
- * @LastEditTime: 2025-06-26 18:02:18
+ * @LastEditTime: 2025-06-27 08:50:01
  * @Description: list 方法
  */
+
+import { areObjectEqual } from "./ObjectHelper";
+
 
 /**
  * 获取列表第一条记录或者是空值
@@ -288,6 +291,33 @@ export function listToObject(keys: { key: string, value: any }[]): { [key: strin
     const result: { [key: string]: any } = {};
     keys.forEach((item, index) => {
         result[item.key] = item.value;
+    });
+    return result;
+}
+
+/**
+ * 获取列表交集
+ * @param list1 
+ * @param list2 
+ * @param equals 相等计算方法
+ * @returns 两个列表的交集
+ */
+export function intersect<T>(list1: T[], list2: T[], equals?: (x: T, y: T) => boolean) {
+    if (!list1 || !list2) return [];
+
+    let result = list1.filter(x => {
+        let count = list2.filter(y => {
+            if (equals) {
+                if (equals(x, y)) {
+                    return true;
+                }
+                return false;
+            }
+            else {
+                return areObjectEqual(x, y);
+            }
+        }).length
+        return count > 0;
     });
     return result;
 }
