@@ -59,6 +59,10 @@ class VersionRelease {
     console.log('将dev分支合并到main...');
     this.executeCommand('git merge dev');
 
+    // 将dev分支合并到main
+    console.log('推送main到远端...');
+    this.executeCommand('git push');
+
     // 创建并推送tag
     console.log(`创建tag ${this.tagName}...`);
     this.executeCommand(`git tag -a ${this.tagName} -m "Version ${this.currentVersion}"`);
