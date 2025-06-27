@@ -2,7 +2,7 @@
  * @Author: Lin Ya
  * @Date: 2022-11-03 17:28:19
  * @LastEditors: Lin Ya
- * @LastEditTime: 2025-06-27 08:50:01
+ * @LastEditTime: 2025-06-27 15:51:56
  * @Description: list 方法
  */
 
@@ -210,17 +210,41 @@ export function listEqual<T>(a: T[], b: T[], prop: (item: T) => string): boolean
 
 /**
  * 获取列表中的唯一记录
- * @param list
- * @param prop 作为唯一值属性
+ * @param list 要处理的数组
+ * @param prop 可选，用于确定唯一性的属性获取函数。如果未提供，则将元素本身作为唯一值
+ * @returns 去重后的数组
+ * @example
+ * // 基本用法
+ * listDistinct([1, 2, 2, 3]); // 返回 [1, 2, 3]
+ * 
+ * // 使用对象数组
+ * const users = [
+ *   { id: 1, name: 'Alice' },
+ *   { id: 2, name: 'Bob' },
+ *   { id: 1, name: 'Alice' }
+ * ];
+ * listDistinct(users, user => user.id); 
+ * // 返回 [
+ * //   { id: 1, name: 'Alice' },
+ * //   { id: 2, name: 'Bob' }
+ * // ]
  */
-export function listDistinct<T>(list: T[], prop: (item: T) => string) {
-    const keyList = list.map(prop);
-    const result = list.filter((x, i) => onlyUnique(prop(x), i, keyList));
-    return result;
-
-    function onlyUnique<T>(value: string, index: number, array: string[]) {
-        return array.indexOf(value) === index;
+export function listDistinct<T>(list: T[], prop?: (item: T) => string) {
+    // 如果有prop函数，使用字符串键比对
+    if (prop) {
+        const seen = new Set<string>();
+        return list.filter(item => {
+            const key = prop(item);
+            if (seen.has(key)) return false;
+            seen.add(key);
+            return true;
+        });
     }
+    
+    // 否则使用深度对象比较
+    return list.filter((item, index, self) => 
+        self.findIndex(i => areObjectEqual(i, item)) === index
+    );
 }
 
 /**
