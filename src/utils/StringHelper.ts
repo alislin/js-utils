@@ -2,7 +2,7 @@
  * @Author: Lin Ya
  * @Date: 2022-06-30 20:29:34
  * @LastEditors: Lin Ya
- * @LastEditTime: 2025-06-27 09:01:50
+ * @LastEditTime: 2025-06-27 11:26:10
  * @Description: string 帮助方法
  */
 
@@ -239,9 +239,9 @@ export function getDate(date?: Date | string | number, split: string = "-"): str
 }
 
 /**
- * 获取日期字串
+ * 获取时间字串
  * @param date 日期
- * @returns 日期字串 (eg: 2022-08-07)
+ * @returns 时间字串 (eg: 2022-08-07)
  */
 export function getTime(date?: Date | string | number, split: string = "-"): string | undefined {
     if (date) {
