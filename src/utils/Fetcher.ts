@@ -1,8 +1,8 @@
 /*
 * @Author: Lin Ya
 * @Date: 2022-06-08 10:53:42
-* @LastEditors: Lin Ya
-* @LastEditTime: 2024-06-20 08:27:25
+ * @LastEditors: Lin Ya
+ * @LastEditTime: 2025-07-01 08:47:30
 * @Description: 数据请求
 */
 export class Fetcher {
@@ -140,7 +140,7 @@ export class Fetcher {
         const base = baseUrl ?? this.BaseUrl;
 
         let request = this.initRequest(requestInit);
-        const req_url = base + url;
+        const req_url = url.toLowerCase().startsWith("http") ? url : base + url;
         if (this.IsDenyApi(req_url)) {
             this.Loading = false;
             console.warn(`无权限，禁用访问：${req_url}`);
@@ -150,12 +150,6 @@ export class Fetcher {
         let resp = fetch(req_url, request)
             .then(response => {
                 return this.handleResponse<T>(response);
-                // if (response.status === 200) {
-                //     return response.json();
-                // }
-                // else {
-                //     return <T>this.ErrorResponse(response.status + " " + response.statusText);
-                // }
             })
             .catch(error => {
                 this.NotifyError("[" + request?.method + "]" + req_url + "]：" + error.message);
