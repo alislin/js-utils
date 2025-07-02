@@ -33,7 +33,7 @@ export function areObjectEqual(query1: any, query2: any, opt?: { excludeKeys?: s
     // 是否严格比较 null 和 undefined ，默认为false, null=undefined
     const strictNull = opt?.strictNull ?? false;
     // 如果两个值严格相等，直接返回true
-    if (query1 === query2) return true;
+    if ((query1 === query2)) return true;
 
     // 如果其中一个是null或undefined，另一个不是，返回false
     if (query1 == null || query2 == null) {
