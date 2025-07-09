@@ -10,7 +10,7 @@
     "test": "jest",
     "build": "tsc",
     "publish": "rollup -c",
-    "tag": "node versionTag.js",
+    "publish:tag": "node versionTag.js",
     "docs": "typedoc"
   },
   "repository": {
