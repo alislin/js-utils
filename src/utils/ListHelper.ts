@@ -2,7 +2,7 @@
  * @Author: Lin Ya
  * @Date: 2022-11-03 17:28:19
  * @LastEditors: Lin Ya
- * @LastEditTime: 2025-07-02 09:55:17
+ * @LastEditTime: 2025-07-11 10:04:24
  * @Description: list 方法
  */
 
@@ -489,9 +489,21 @@ export async function loadByPage<TResult, Response>(
         const first_resp = await load(firstPage);
         if (!first_resp) return [];
 
-        list.push(...getItems(first_resp));
-        if (opt?.onPage) opt.onPage(first_resp);
-        let total = getTotalPages(first_resp) + firstPage;
+        // 获取第一页数据列表（确保是数组）
+        const firstPageItems = getItems(first_resp);
+        if (!Array.isArray(firstPageItems)) {
+            throw new Error('getItems 必须返回数组类型');
+        }
+        list.push(...firstPageItems);
+
+        // 执行分页回调
+        opt?.onPage?.(first_resp);
+
+        // 计算总页数（确保是数字）
+        let total = Number(getTotalPages(first_resp)) + firstPage;
+        if (isNaN(total)) {
+            throw new Error('总页数必须是有效数字');
+        }
         if (total > firstPage) {
             for (let i = firstPage + 1; i < total; i++) {
                 const resp = await load(i);
@@ -499,7 +511,19 @@ export async function loadByPage<TResult, Response>(
                     if (opt?.onError) opt.onError(``);
                     break;
                 }
-                total = getTotalPages(resp) + firstPage;
+                
+                // 更新总页数（每次请求后重新校验）
+                total = Number(getTotalPages(resp)) + firstPage;
+                if (isNaN(total)) {
+                    throw new Error('总页数必须是有效数字');
+                }
+
+                // 获取当前页数据列表（确保是数组）
+                const currentItems = getItems(resp);
+                if (!Array.isArray(currentItems)) {
+                    throw new Error('getItems 必须返回数组类型');
+                }
+
                 list.push(...getItems(resp));
                 if (opt?.onPage) opt.onPage(resp);
             }
