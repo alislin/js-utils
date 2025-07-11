@@ -2,7 +2,7 @@
  * @Author: Lin Ya
  * @Date: 2024-08-19 17:59:47
  * @LastEditors: Lin Ya
- * @LastEditTime: 2025-07-02 09:56:57
+ * @LastEditTime: 2025-07-11 10:36:45
  * @Description: ListHelper test
  */
 import { getCombinations, groupBy, groupByFunc, intersect, listDistinct, listEqual, listFlat, listFlats, listGroupSum, listGroupSumAll, listGroupSumFirst, listPageAction, listSum, listToObject, loadByPage } from "../src/utils/ListHelper";
@@ -738,6 +738,139 @@ describe('loadByPage', () => {
             { id: 4 }
         ]);
         expect(mockLoad).toHaveBeenCalledTimes(4);
+    });
+
+    describe('loadByPage 异常类型输入测试', () => {
+        // 模拟正常的加载函数
+        const mockLoad = jest.fn(async (page: number) => ({}));
+        const mockGetTotalPages = jest.fn(() => 1);
+        const mockGetItems = jest.fn(() => []);
+
+        beforeEach(() => {
+            jest.clearAllMocks();
+        });
+
+        describe('测试 firstPage 参数异常', () => {
+            it('当 firstPage 是无效数字字符串时应该抛出错误', async () => {
+                const onError = jest.fn();
+
+                await loadByPage(
+                    'invalid-number' as any, // 无效数字字符串
+                    mockLoad,
+                    mockGetTotalPages,
+                    mockGetItems,
+                    { onError }
+                );
+
+                expect(onError).toHaveBeenCalledWith(new Error('起始页码必须是有效数字'));
+            });
+
+            it('当 firstPage 是文本数字时应该正常处理', async () => {
+                mockLoad.mockResolvedValueOnce({});
+
+                const result = await loadByPage(
+                    '123' as any, // 文本数字
+                    mockLoad,
+                    mockGetTotalPages,
+                    mockGetItems
+                );
+
+                expect(result).toEqual([]);
+                expect(mockLoad).toHaveBeenCalledWith(123); // 应该转换为数字
+            });
+
+            it('当 firstPage 是 null 时应该抛出错误', async () => {
+                const onError = jest.fn();
+
+                await loadByPage(
+                    null as any, // 故意传入 null
+                    mockLoad,
+                    mockGetTotalPages,
+                    mockGetItems,
+                    { onError }
+                );
+
+                expect(onError).toHaveBeenCalledWith(new Error('起始页码必须是有效数字'));
+            });
+
+            it('当 firstPage 是 undefined 时应该抛出错误', async () => {
+                const onError = jest.fn();
+
+                await loadByPage(
+                    undefined as any, // 故意传入 undefined
+                    mockLoad,
+                    mockGetTotalPages,
+                    mockGetItems,
+                    { onError }
+                );
+
+                expect(onError).toHaveBeenCalledWith(new Error('起始页码必须是有效数字'));
+            });
+        });
+
+        describe('测试 getItems 返回值异常', () => {
+            it('当 getItems 返回非数组时应该抛出错误', async () => {
+                const mockBadGetItems = jest.fn(() => ({} as any)); // 返回对象而非数组
+                const onError = jest.fn();
+
+                await loadByPage(
+                    1,
+                    mockLoad,
+                    mockGetTotalPages,
+                    mockBadGetItems,
+                    { onError }
+                );
+
+                expect(onError).toHaveBeenCalledWith(new Error('getItems 必须返回数组类型'));
+            });
+
+            it('当 getItems 返回 null 时应该抛出错误', async () => {
+                const mockBadGetItems = jest.fn(() => null as any);
+                const onError = jest.fn();
+
+                await loadByPage(
+                    1,
+                    mockLoad,
+                    mockGetTotalPages,
+                    mockBadGetItems,
+                    { onError }
+                );
+
+                expect(onError).toHaveBeenCalledWith(new Error('getItems 必须返回数组类型'));
+            });
+        });
+
+        describe('测试 getTotalPages 返回值异常', () => {
+            it('当 getTotalPages 返回无效数字时应该抛出错误', async () => {
+                const mockBadGetTotalPages = jest.fn(() => 'invalid' as any);
+                const onError = jest.fn();
+
+                await loadByPage(
+                    1,
+                    mockLoad,
+                    mockBadGetTotalPages,
+                    mockGetItems,
+                    { onError }
+                );
+
+                expect(onError).toHaveBeenCalledWith(new Error('总页数必须是有效数字'));
+            });
+
+            it('当 getTotalPages 返回 NaN 时应该抛出错误', async () => {
+                const mockBadGetTotalPages = jest.fn(() => NaN);
+                const onError = jest.fn();
+
+                await loadByPage(
+                    1,
+                    mockLoad,
+                    mockBadGetTotalPages,
+                    mockGetItems,
+                    { onError }
+                );
+
+                expect(onError).toHaveBeenCalledWith(new Error('总页数必须是有效数字'));
+            });
+        });
     });
 });
 

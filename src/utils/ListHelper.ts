@@ -2,7 +2,7 @@
  * @Author: Lin Ya
  * @Date: 2022-11-03 17:28:19
  * @LastEditors: Lin Ya
- * @LastEditTime: 2025-07-11 10:04:24
+ * @LastEditTime: 2025-07-11 10:39:36
  * @Description: list 方法
  */
 
@@ -486,7 +486,15 @@ export async function loadByPage<TResult, Response>(
 ) {
     const list = [] as TResult[];
     try {
-        const first_resp = await load(firstPage);
+        if (firstPage === null) {
+            throw new Error('起始页码必须是有效数字');
+        }
+        let firstIndex = Number(firstPage) + 0;
+        if (isNaN(firstIndex)) {
+            throw new Error('起始页码必须是有效数字');
+        }
+
+        const first_resp = await load(firstIndex);
         if (!first_resp) return [];
 
         // 获取第一页数据列表（确保是数组）
@@ -500,20 +508,20 @@ export async function loadByPage<TResult, Response>(
         opt?.onPage?.(first_resp);
 
         // 计算总页数（确保是数字）
-        let total = Number(getTotalPages(first_resp)) + firstPage;
+        let total = Number(getTotalPages(first_resp)) + firstIndex;
         if (isNaN(total)) {
             throw new Error('总页数必须是有效数字');
         }
-        if (total > firstPage) {
-            for (let i = firstPage + 1; i < total; i++) {
+        if (total > firstIndex) {
+            for (let i = firstIndex + 1; i < total; i++) {
                 const resp = await load(i);
                 if (!resp) {
                     if (opt?.onError) opt.onError(``);
                     break;
                 }
-                
+
                 // 更新总页数（每次请求后重新校验）
-                total = Number(getTotalPages(resp)) + firstPage;
+                total = Number(getTotalPages(resp)) + firstIndex;
                 if (isNaN(total)) {
                     throw new Error('总页数必须是有效数字');
                 }
