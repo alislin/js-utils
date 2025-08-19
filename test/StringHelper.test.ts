@@ -172,6 +172,12 @@ describe('boolValue 方法测试', () => {
         expect(boolValue('')).toBe(false);        // 空字符串
     });
 
+    // 测试 boolean 情况
+    test('测试 boolean 情况', () => {
+        expect(boolValue(true)).toBe(true);      // true
+        expect(boolValue(false)).toBe(false); // false
+    });
+
     // 测试默认的 true 值（不区分大小写）
     test('默认 true 值应返回 true', () => {
         expect(boolValue('true')).toBe(true);     // 小写
@@ -203,16 +209,16 @@ describe('boolValue 方法测试', () => {
     // 测试自定义 trueKeys
     test('应支持自定义 trueKeys', () => {
         const customTrueKeys = ['enabled', 'active', 'ok'];
-        
+
         // 自定义值应返回 true
         expect(boolValue('enabled', customTrueKeys)).toBe(true);
         expect(boolValue('active', customTrueKeys)).toBe(true);
         expect(boolValue('ok', customTrueKeys)).toBe(true);
-        
+
         // 默认值在自定义模式下应返回 false
         expect(boolValue('true', customTrueKeys)).toBe(false);
         expect(boolValue('yes', customTrueKeys)).toBe(false);
-        
+
         // 其他值应返回 false
         expect(boolValue('disabled', customTrueKeys)).toBe(false);
     });
