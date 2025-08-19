@@ -1,4 +1,4 @@
-import { formatBracket, mask, setNodeId } from "../src/utils/StringHelper";
+import { boolValue, formatBracket, mask, setNodeId } from "../src/utils/StringHelper";
 // import { describe, expect, test } from '@jest/globals';
 
 test("seed id test", () => {
@@ -161,5 +161,59 @@ describe('mask function', () => {
         expect(mask("123456", "##a**##", "left", "#")).toBe("123**6");
         expect(mask("123456", "##?**##", "right")).toBe("1***56");
         expect(mask("123456", "##?**##", "right", "#")).toBe("12**56");
+    });
+});
+
+describe('boolValue 方法测试', () => {
+    // 测试空值情况
+    test('空值应返回 false', () => {
+        expect(boolValue(null)).toBe(false);      // null
+        expect(boolValue(undefined)).toBe(false); // undefined
+        expect(boolValue('')).toBe(false);        // 空字符串
+    });
+
+    // 测试默认的 true 值（不区分大小写）
+    test('默认 true 值应返回 true', () => {
+        expect(boolValue('true')).toBe(true);     // 小写
+        expect(boolValue('TRUE')).toBe(true);     // 大写
+        expect(boolValue('1')).toBe(true);        // 数字1
+        expect(boolValue('yes')).toBe(true);      // yes
+        expect(boolValue('YES')).toBe(true);      // YES
+        expect(boolValue('y')).toBe(true);       // y
+        expect(boolValue('on')).toBe(true);       // on
+        expect(boolValue('ON')).toBe(true);      // ON
+    });
+
+    // 测试非 true 值
+    test('非 true 值应返回 false', () => {
+        expect(boolValue('false')).toBe(false);   // false
+        expect(boolValue('0')).toBe(false);       // 0
+        expect(boolValue('no')).toBe(false);      // no
+        expect(boolValue('off')).toBe(false);     // off
+        expect(boolValue('random')).toBe(false);  // 随机字符串
+    });
+
+    // 测试字符串首尾空格处理
+    test('应自动去除首尾空格', () => {
+        expect(boolValue(' true ')).toBe(true);   // 带空格
+        expect(boolValue(' 1 ')).toBe(true);      // 带空格
+        expect(boolValue(' yes ')).toBe(true);    // 带空格
+    });
+
+    // 测试自定义 trueKeys
+    test('应支持自定义 trueKeys', () => {
+        const customTrueKeys = ['enabled', 'active', 'ok'];
+        
+        // 自定义值应返回 true
+        expect(boolValue('enabled', customTrueKeys)).toBe(true);
+        expect(boolValue('active', customTrueKeys)).toBe(true);
+        expect(boolValue('ok', customTrueKeys)).toBe(true);
+        
+        // 默认值在自定义模式下应返回 false
+        expect(boolValue('true', customTrueKeys)).toBe(false);
+        expect(boolValue('yes', customTrueKeys)).toBe(false);
+        
+        // 其他值应返回 false
+        expect(boolValue('disabled', customTrueKeys)).toBe(false);
     });
 });
