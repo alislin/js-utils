@@ -2,7 +2,7 @@
  * @Author: Lin Ya
  * @Date: 2022-06-30 20:29:34
  * @LastEditors: Lin Ya
- * @LastEditTime: 2025-08-19 11:26:34
+ * @LastEditTime: 2025-08-19 14:17:50
  * @Description: string 帮助方法
  */
 
@@ -695,7 +695,7 @@ export function mask(src: string, mask: string, align: "left" | "right" = "left"
 /**
  * 将字符串转换为布尔值
  * 
- * @param str - 要转换的字符串，可以是 string、null 或 undefined
+ * @param value - 要转换的字符串，可以是 boolean、string、null 或 undefined
  * @param trueKeys - 可选参数，自定义被视为 true 的字符串值列表
  * @returns 转换后的布尔值
  * 
@@ -710,18 +710,28 @@ export function mask(src: string, mask: string, align: "left" | "right" = "left"
  * boolValue('enabled', ['enabled', 'active']); // 返回 true
  * boolValue('active', ['enabled', 'active']);  // 返回 true
  */
-export function boolValue(str: string | null | undefined, trueKeys?: string[]): boolean {
+export function boolValue(value: any | null | undefined, trueKeys?: string[]): boolean {
     // 处理空值情况
-    if (!str) return false;
-    
+    if (!value) return false;
+
+    if (typeof value === 'boolean') return value;
+
+    let str = "";
+    if (typeof value !== 'string') {
+        str = value;
+    }
+    else {
+        str = value.toString();
+    }
+
     // 统一转换为小写并去除首尾空格
     const normalizedStr = str.toLowerCase().trim();
-    
+
     // 如果传入了自定义 trueKeys，则使用自定义列表
     if (trueKeys && trueKeys.length > 0) {
         return trueKeys.some(key => key.toLowerCase() === normalizedStr);
     }
-    
+
     // 默认情况下检查这些值视为 true
     return ['true', '1', 'yes', 'y', 'on'].includes(normalizedStr);
 }
