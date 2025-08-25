@@ -2,7 +2,7 @@
  * @Author: Lin Ya
  * @Date: 2024-03-26 15:49:54
  * @LastEditors: Lin Ya
- * @LastEditTime: 2024-08-09 13:12:52
+ * @LastEditTime: 2025-08-25 17:50:17
  * @Description: 数据导出方法
  */
 
@@ -81,6 +81,8 @@ export interface DataExportOption {
     pageSize?: string,
     /** 页面范围(为空是全部页面；1,2,3 或者 2-5) */
     pageRange?: string,
+    /** 新增：分页基准，0或1，默认为auto自动检测 */
+    pageBase?: 0 | 1 | 'auto';
 }
 
 /**
@@ -173,12 +175,14 @@ const list = await dataExport(req, (total, index) => { });
 // pageSize = "_urlParams.size",
  */
 export async function dataExport(options: DataExportOption, onProgress?: (total: number, v: number) => void) {
-    onProgress && onProgress(0, 0);
+    onProgress?.(0, 0);
     const result: any[] = [];
 
     let pageRanges = parseRange(options.pageRange);
+    // 确定分页基准 (0-base 或 1-base)
+    const pageBase = await determinePageBase(options, pageRanges);
 
-    let firstPage = pageRanges.length > 0 ? pageRanges[0] : 1;
+    let firstPage = pageRanges.length > 0 ? pageRanges[0] : pageBase;
 
     // 生成第一页请求参数
     let response = await executeCurl(options.command, options.pageIndex, firstPage);
@@ -191,10 +195,10 @@ export async function dataExport(options: DataExportOption, onProgress?: (total:
     // 加入结果列表
     result.push(...list);
     // 检查是否全部数据（页数范围）
-    let total = +getProperty(response, options.pageTotal);
-    onProgress && onProgress(total, result.length);
+    let total = +getProperty(response, options.pageTotal) || 0;
+    onProgress?.(total, result.length);
     if (!total || total === result.length) {
-        onProgress && onProgress(total, total);
+        onProgress?.(total, total);
         return result;
     }
     let size = +getProperty(response, options.pageSize);
@@ -206,11 +210,11 @@ export async function dataExport(options: DataExportOption, onProgress?: (total:
     if (!pageCount || isNaN(pageCount)) pageCount = (total / size) + 1;
     if (pageRanges.length === 0) {
         // 填充数据
-        for (let i = 1; i < pageCount; i++) {
+        for (let i = pageBase; i < pageCount + pageBase; i++) {
             pageRanges.push(i);
         }
     }
-    onProgress && onProgress(pageRanges.length, 1);
+    onProgress?.(pageRanges.length, 1);
     for (let i = 1; i < pageRanges.length; i++) {
         response = await executeCurl(options.command, options.pageIndex, pageRanges[i]);
         let list = getProperty(response, options.listItem);
@@ -219,9 +223,9 @@ export async function dataExport(options: DataExportOption, onProgress?: (total:
         }
         // 加入结果列表
         result.push(...list);
-        onProgress && onProgress(pageRanges.length, i + 1);
+        onProgress?.(pageRanges.length, i + 1);
     }
-    onProgress && onProgress(pageRanges.length, pageRanges.length);
+    onProgress?.(pageRanges.length, pageRanges.length);
     // 完成数据返回
     return result
 
@@ -257,6 +261,50 @@ function parseRange(requestRange?: string) {
         }
     }
     return result;
+}
+
+/**
+ * 确定分页基准 (0-base 或 1-base)
+ */
+async function determinePageBase(options: DataExportOption, pageRanges: number[]): Promise<0 | 1> {
+    // 如果明确指定了分页基准，直接使用
+    if (options.pageBase === 0) return 0;
+    if (options.pageBase === 1) return 1;
+
+    // 自动检测分页基准
+    // 尝试获取第一页数据
+    const pageOneResponse = await executeCurl(options.command, options.pageIndex, 1);
+    const pageOneList = getProperty(pageOneResponse, options.listItem) || [];
+
+    if (pageOneList.length > 0) {
+        // 如果页码1返回了数据，可能是1-base，也可能是0-base但服务端处理了
+        // 尝试获取第0页数据
+        try {
+            const pageZeroResponse = await executeCurl(options.command, options.pageIndex, 0);
+            const pageZeroList = getProperty(pageZeroResponse, options.listItem) || [];
+
+            // 如果第0页返回了有效数据，则是0-base
+            if (pageZeroList.length > 0) {
+                return 0;
+            }
+        } catch (e) {
+            // 如果请求第0页出错，可能是1-base系统
+        }
+
+        // 默认认为是1-base
+        return 1;
+    } else {
+        // 如果页码1没有数据，尝试获取第0页
+        const pageZeroResponse = await executeCurl(options.command, options.pageIndex, 0);
+        const pageZeroList = getProperty(pageZeroResponse, options.listItem) || [];
+
+        if (pageZeroList.length > 0) {
+            return 0;
+        }
+    }
+
+    // 默认使用1-base
+    return 1;
 }
 
 /**
@@ -327,9 +375,18 @@ setProperty(data, "info.title","Who");
 // title: "Who"
  */
 export function setProperty(obj: any, propertyPath: string, value: any): any {
-    if (!propertyPath || propertyPath === null || propertyPath === "") {
-        return undefined;
+    // 检查属性路径是否有效
+    if (!propertyPath || typeof propertyPath !== 'string' || propertyPath.trim() === "") {
+        console.warn("Invalid property path provided");
+        return obj;
     }
+
+    // 检查源对象是否有效
+    if (obj === null || obj === undefined || typeof obj !== 'object') {
+        console.warn("Source object is not valid");
+        return obj;
+    }
+
 
     // 解析属性路径
     const properties = propertyPath.split('.');
