@@ -2,7 +2,7 @@
  * @Author: Lin Ya
  * @Date: 2022-06-30 20:29:34
  * @LastEditors: Lin Ya
- * @LastEditTime: 2025-08-19 14:17:50
+ * @LastEditTime: 2025-09-02 15:06:52
  * @Description: string 帮助方法
  */
 
@@ -333,9 +333,21 @@ export function toDateTime(utc: number) {
 // #endregion
 
 /**
- * 字符串列表转换为字符串
- * @param list 字符串列表
- * @returns 结果字串(换行分隔)
+ * 将字符串列表转换为单个字符串，使用指定分隔符连接（默认换行符）
+ * @param list - 待转换的字符串列表，可选参数
+ * @param split - 分隔符，可选参数，默认为换行符"\n"
+ * @returns 使用分隔符连接后的字符串
+ * @example
+ * // 返回 "a\nb\nc"
+ * listToStr(['a', 'b', 'c'])
+ * 
+ * @example
+ * // 返回 "a,b,c"
+ * listToStr(['a', 'b', 'c'], ',')
+ * 
+ * @example
+ * // 返回空字符串
+ * listToStr()
  */
 export function listToStr(list?: string[], split?: string): string {
     let m = "";
@@ -355,15 +367,43 @@ export function listToStr(list?: string[], split?: string): string {
 }
 
 /**
- * 按照换行转换为列表
- * @param str 字符串
- * @returns 列表
+ * 将字符串按换行符分割为字符串列表（自动处理Windows换行符\r\n）
+ * @param str - 待分割的字符串，可选参数
+ * @returns 分割后的字符串数组
+ * @example
+ * // 返回 ['line1', 'line2', 'line3']
+ * strToList('line1\nline2\nline3')
+ * 
+ * @example
+ * // 返回 ['line1', 'line2']
+ * strToList('line1\r\nline2')
+ * 
+ * @example
+ * // 返回空数组
+ * strToList()
  */
 export function strToList(str?: string): string[] {
     let n = str?.replace("\r", "");
     return n?.split("\n") ?? [];
 }
 
+/**
+ * 使用指定分隔符列表分割字符串
+ * @param str - 待分割的字符串，可选参数
+ * @param splitList - 分隔符列表，可选参数，默认为" ,;/\\|\n\t"
+ * @returns 分割后的字符串数组
+ * @example
+ * // 返回 ['a', 'b', 'c']
+ * splitText('a b c')
+ * 
+ * @example
+ * // 返回 ['a', 'b', 'c']
+ * splitText('a,b;c', ',;')
+ * 
+ * @example
+ * // 返回空数组
+ * splitText()
+ */
 export function splitText(str?: string, splitList?: string) {
     if (isEmpty(str)) return [];
     const sp = splitList ?? " ,;/\\|\n\t";
@@ -372,6 +412,23 @@ export function splitText(str?: string, splitList?: string) {
     return result;
 }
 
+/**
+ * 将分转换为元（除以100）
+ * @param fen - 分数值
+ * @param fixed - 是否固定为两位小数，可选参数，默认为false
+ * @returns 转换后的元数值
+ * @example
+ * // 返回 12.34
+ * fenToYuan(1234)
+ * 
+ * @example
+ * // 返回 12.34 (字符串类型，但实际返回数字)
+ * fenToYuan(1234, true)
+ * 
+ * @example
+ * // 返回 0
+ * fenToYuan(0)
+ */
 export function fenToYuan(fen: number, fixed: boolean = false) {
     let v = (fen / 100.0);
     if (fixed) {
@@ -382,6 +439,18 @@ export function fenToYuan(fen: number, fixed: boolean = false) {
     return v;
 }
 
+/**
+ * 将元转换为分（乘以100）
+ * @param value - 元数值
+ * @returns 转换后的分数值
+ * @example
+ * // 返回 1234
+ * yuanToFen(12.34)
+ * 
+ * @example
+ * // 返回 100
+ * yuanToFen(1)
+ */
 export function yuanToFen(value: number) {
     return value * 100;
 }
@@ -395,13 +464,36 @@ export function yuanToFen(value: number) {
 //     return result as T;
 // }
 
-
+/**
+ * 将日期或日期字符串转换为YYYY-MM-DD格式的日期值
+ * @param value - 日期对象或日期字符串
+ * @returns YYYY-MM-DD格式的日期字符串
+ * @example
+ * // 返回 "2023-01-15"
+ * toDateValue(new Date(2023, 0, 15))
+ * 
+ * @example
+ * // 返回 "2023-01-15"
+ * toDateValue('2023-01-15T10:30:00.000Z')
+ */
 export function toDateValue(value: Date | string) {
     let d = new Date(value);
     let m = d.toISOString();
     return m.substring(0, 10);
 }
 
+/**
+ * 将字符串转换为字符数组
+ * @param value - 待转换的字符串，可选参数
+ * @returns 字符数组
+ * @example
+ * // 返回 ['h', 'e', 'l', 'l', 'o']
+ * toCharArray('hello')
+ * 
+ * @example
+ * // 返回空数组
+ * toCharArray()
+ */
 export function toCharArray(value?: string): string[] {
     const list: string[] = [];
     if (!value) return list;

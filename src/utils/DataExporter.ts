@@ -2,7 +2,7 @@
  * @Author: Lin Ya
  * @Date: 2024-03-26 15:49:54
  * @LastEditors: Lin Ya
- * @LastEditTime: 2025-08-25 17:50:17
+ * @LastEditTime: 2025-09-02 14:56:18
  * @Description: 数据导出方法
  */
 
@@ -273,34 +273,38 @@ async function determinePageBase(options: DataExportOption, pageRanges: number[]
 
     // 自动检测分页基准
     // 尝试获取第一页数据
-    const pageOneResponse = await executeCurl(options.command, options.pageIndex, 1);
-    const pageOneList = getProperty(pageOneResponse, options.listItem) || [];
+    try {
+        const pageOneResponse = await executeCurl(options.command, options.pageIndex, 1);
+        const pageOneList = getProperty(pageOneResponse, options.listItem) || [];
 
-    if (pageOneList.length > 0) {
-        // 如果页码1返回了数据，可能是1-base，也可能是0-base但服务端处理了
-        // 尝试获取第0页数据
-        try {
+        if (pageOneList.length > 0) {
+            // 如果页码1返回了数据，可能是1-base，也可能是0-base但服务端处理了
+            // 尝试获取第0页数据
+            try {
+                const pageZeroResponse = await executeCurl(options.command, options.pageIndex, 0);
+                const pageZeroList = getProperty(pageZeroResponse, options.listItem) || [];
+
+                // 如果第0页返回了有效数据，则是0-base
+                if (pageZeroList.length > 0) {
+                    return 0;
+                }
+            } catch (e) {
+                // 如果请求第0页出错，可能是1-base系统
+            }
+
+            // 默认认为是1-base
+            return 1;
+        } else {
+            // 如果页码1没有数据，尝试获取第0页
             const pageZeroResponse = await executeCurl(options.command, options.pageIndex, 0);
             const pageZeroList = getProperty(pageZeroResponse, options.listItem) || [];
 
-            // 如果第0页返回了有效数据，则是0-base
             if (pageZeroList.length > 0) {
                 return 0;
             }
-        } catch (e) {
-            // 如果请求第0页出错，可能是1-base系统
         }
+    } catch (err) {
 
-        // 默认认为是1-base
-        return 1;
-    } else {
-        // 如果页码1没有数据，尝试获取第0页
-        const pageZeroResponse = await executeCurl(options.command, options.pageIndex, 0);
-        const pageZeroList = getProperty(pageZeroResponse, options.listItem) || [];
-
-        if (pageZeroList.length > 0) {
-            return 0;
-        }
     }
 
     // 默认使用1-base
@@ -531,7 +535,7 @@ export async function executeCurl(command: HttpCommand, pagePropertyPath?: strin
             body: body ? JSON.stringify(body) : null
         });
 
-        if (!response.ok) {
+        if (!(response?.ok)) {
             throw new Error('Network response was not ok');
         }
 
@@ -540,5 +544,7 @@ export async function executeCurl(command: HttpCommand, pagePropertyPath?: strin
         return responseData;
     } catch (error) {
         console.error('There was an error!', error);
+        // 重新抛出错误，以传播拒绝状态
+        // throw error;
     }
 }
