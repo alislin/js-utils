@@ -63,6 +63,17 @@ describe('数据导出工具函数测试', () => {
             setProperty(obj, "level1.level2.value", "test");
             expect(obj.level1.level2.value).toBe("test");
         });
+
+        test('正确设置页码', () => {
+            const obj = { page: 1 } as any;
+            setProperty(obj, "page", 0);
+            expect(obj.page).toBe(0);
+            setProperty(obj, "page", 1);
+            expect(obj.page).toBe(1);
+            setProperty(obj, "page", 2);
+            expect(obj.page).toBe(2);
+        });
+
     });
 
     // 测试 URL 参数处理函数
@@ -282,6 +293,83 @@ describe('数据导出工具函数测试', () => {
 
             const result = await dataExport(options);
             expect(result).toBeDefined();
+        });
+    });
+
+    describe('分页基准自动检测与重复数据问题', () => {
+        test('使用 auto 模式且为 1-base 接口时，应避免第一页数据被重复添加', async () => {
+            // 模拟 fetch 行为：
+            // 1. 第一次调用：由 determinePageBase 发出，请求 page=1，返回正常数据
+            // 2. 第二次调用：由 determinePageBase 发出，请求 page=0，返回空数组
+            // 3. 第三次调用：dataExport 再次发出，请求 page=1
+            (fetch as jest.Mock)
+                .mockResolvedValueOnce({
+                    ok: true,
+                    json: async () => ({
+                        data: {
+                            total: "20",
+                            items: [{ id: 1, name: "page1-item1" }, { id: 2, name: "page1-item2" }]
+                        }
+                    })
+                })
+                .mockResolvedValueOnce({
+                    ok: true,
+                    json: async () => ({
+                        data: {
+                            total: "20",
+                            items: [] as any[]
+                        }
+                    })
+                })
+                .mockResolvedValueOnce({
+                    ok: true,
+                    json: async () => ({
+                        data: {
+                            total: "20",
+                            items: [{ id: 1, name: "page1-item1" }, { id: 2, name: "page1-item2" }]
+                        }
+                    })
+                })
+                .mockResolvedValueOnce({
+                    ok: true,
+                    json: async () => ({
+                        data: {
+                            total: "20",
+                            items: [{ id: 3, name: "page2-item3" }, { id: 4, name: "page2-item4" }]
+                        }
+                    })
+                });
+
+            const options: DataExportOption = {
+                command: {
+                    url: 'https://api.example.com/data',
+                    method: 'GET',
+                    headers: {}
+                },
+                pageIndex: "page",
+                pageSize: "size",
+                pageTotal: "data.total",
+                listItem: "data.items",
+                pageRange: "1-2", // 指定只获取第1-2页
+                pageBase: 'auto'
+            };
+
+            const result = await dataExport(options);
+
+            // 验证 fetch 被调用了四次
+            expect(fetch).toHaveBeenCalledTimes(4);
+
+            // 验证结果数组的长度是否正确
+            // 如果重复添加了，长度会是 6，我们期望的正确长度应该是 4
+            expect(result).toHaveLength(4);
+
+            // 验证结果内容是否正确，没有重复
+            expect(result).toEqual([
+                { id: 1, name: "page1-item1" },
+                { id: 2, name: "page1-item2" },
+                { id: 3, name: "page2-item3" },
+                { id: 4, name: "page2-item4" },
+            ]);
         });
     });
 

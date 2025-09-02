@@ -2,7 +2,7 @@
  * @Author: Lin Ya
  * @Date: 2024-03-26 15:49:54
  * @LastEditors: Lin Ya
- * @LastEditTime: 2025-09-02 14:56:18
+ * @LastEditTime: 2025-09-02 18:21:37
  * @Description: 数据导出方法
  */
 
@@ -518,7 +518,7 @@ export async function executeCurl(command: HttpCommand, pagePropertyPath?: strin
     // console.log("url", url, method, "headers", headers, 'body', body);
     let httpUrl = url;
     // 检查 pagePropertyPath ，如果根节点为：_urlParams，调用请求参数设置
-    if (pagePropertyPath && index) {
+    if (pagePropertyPath && (index || index === 0)) {
         if (pagePropertyPath?.startsWith("_urlParams.")) {
             let path = pagePropertyPath.replace("_urlParams.", "");
             httpUrl = setQueryParam(url, path, <string><unknown>index);
