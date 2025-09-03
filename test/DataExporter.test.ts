@@ -294,9 +294,81 @@ describe('数据导出工具函数测试', () => {
             const result = await dataExport(options);
             expect(result).toBeDefined();
         });
-    });
 
-    describe('分页基准自动检测与重复数据问题', () => {
+        test('当页码0和1返回相同数据时，应正确推断为1-base', async () => {
+            // 模拟 fetch 行为
+            // 1. 第一次调用：由 determinePageBase 发出，请求 page=1，返回数据
+            // 2. 第二次调用：由 determinePageBase 发出，请求 page=0，返回与page=1相同的数据
+            // 3. 第三次调用：dataExport 主函数发出，请求 page=2
+            (fetch as jest.Mock)
+                .mockResolvedValueOnce({ // determinePageBase 请求 page=1
+                    ok: true,
+                    json: async () => ({
+                        data: {
+                            total: "20",
+                            items: [{ id: 1, name: "item-1" }, { id: 2, name: "item-2" }]
+                        }
+                    })
+                })
+                .mockResolvedValueOnce({ // determinePageBase 请求 page=0
+                    ok: true,
+                    json: async () => ({
+                        data: {
+                            total: "20",
+                            items: [{ id: 1, name: "item-1" }, { id: 2, name: "item-2" }]
+                        }
+                    })
+                })
+                .mockResolvedValueOnce({ // determinePageBase 请求 page=1
+                    ok: true,
+                    json: async () => ({
+                        data: {
+                            total: "20",
+                            items: [{ id: 1, name: "item-1" }, { id: 2, name: "item-2" }]
+                        }
+                    })
+                })
+                .mockResolvedValueOnce({ // dataExport 主函数请求 page=2
+                    ok: true,
+                    json: async () => ({
+                        data: {
+                            total: "20",
+                            items: [{ id: 3, name: "item-3" }, { id: 4, name: "item-4" }]
+                        }
+                    })
+                });
+
+            const options: DataExportOption = {
+                command: {
+                    url: 'https://api.example.com/data',
+                    method: 'GET',
+                    headers: {}
+                },
+                pageIndex: "page",
+                pageSize: "size",
+                pageTotal: "data.total",
+                listItem: "data.items",
+                // pageRange: "1-2", // 确保请求两页数据
+                // pageBase: 'auto'
+            };
+
+            const result = await dataExport(options);
+
+            // 验证 fetch 被调用了三次
+            expect(fetch).toHaveBeenCalledTimes(5);
+
+            // 验证最终结果的长度为 4，表示正确获取了两页数据
+            expect(result).toHaveLength(4);
+
+            // 验证第一页和第二页的数据都被正确添加到结果中
+            expect(result).toEqual([
+                { id: 1, name: "item-1" },
+                { id: 2, name: "item-2" },
+                { id: 3, name: "item-3" },
+                { id: 4, name: "item-4" }
+            ]);
+        });
+
         test('使用 auto 模式且为 1-base 接口时，应避免第一页数据被重复添加', async () => {
             // 模拟 fetch 行为：
             // 1. 第一次调用：由 determinePageBase 发出，请求 page=1，返回正常数据

@@ -2,9 +2,11 @@
  * @Author: Lin Ya
  * @Date: 2024-03-26 15:49:54
  * @LastEditors: Lin Ya
- * @LastEditTime: 2025-09-02 18:21:37
+ * @LastEditTime: 2025-09-03 08:54:53
  * @Description: 数据导出方法
  */
+
+import { md5 } from "./MD5";
 
 /**
  * 导出选项
@@ -286,6 +288,12 @@ async function determinePageBase(options: DataExportOption, pageRanges: number[]
 
                 // 如果第0页返回了有效数据，则是0-base
                 if (pageZeroList.length > 0) {
+                    console.warn("1:", md5(pageOneList), "0:", md5(pageZeroList));
+
+                    // 检查第一页是否和第零页数据是否一样
+                    if (md5(pageOneList) === md5(pageZeroList)) {
+                        return 1;
+                    }
                     return 0;
                 }
             } catch (e) {
@@ -381,13 +389,13 @@ setProperty(data, "info.title","Who");
 export function setProperty(obj: any, propertyPath: string, value: any): any {
     // 检查属性路径是否有效
     if (!propertyPath || typeof propertyPath !== 'string' || propertyPath.trim() === "") {
-        console.warn("Invalid property path provided");
+        // console.warn("Invalid property path provided");
         return obj;
     }
 
     // 检查源对象是否有效
     if (obj === null || obj === undefined || typeof obj !== 'object') {
-        console.warn("Source object is not valid");
+        // console.warn("Source object is not valid");
         return obj;
     }
 
