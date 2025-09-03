@@ -2,7 +2,7 @@
  * @Author: Lin Ya
  * @Date: 2024-03-26 15:49:54
  * @LastEditors: Lin Ya
- * @LastEditTime: 2025-09-03 08:54:53
+ * @LastEditTime: 2025-09-03 09:55:17
  * @Description: 数据导出方法
  */
 
@@ -288,19 +288,21 @@ async function determinePageBase(options: DataExportOption, pageRanges: number[]
 
                 // 如果第0页返回了有效数据，则是0-base
                 if (pageZeroList.length > 0) {
-                    console.warn("1:", md5(pageOneList), "0:", md5(pageZeroList));
-
                     // 检查第一页是否和第零页数据是否一样
                     if (md5(pageOneList) === md5(pageZeroList)) {
+                        console.log("第0页与第1页数据相同，使用：1-base");
                         return 1;
                     }
+                    console.log("自动推测：1：0-base");
                     return 0;
                 }
             } catch (e) {
                 // 如果请求第0页出错，可能是1-base系统
+                console.log("请求第0页出错，推测是：1-base");
             }
 
             // 默认认为是1-base
+            console.log("自动推测：1-base");
             return 1;
         } else {
             // 如果页码1没有数据，尝试获取第0页
@@ -308,6 +310,7 @@ async function determinePageBase(options: DataExportOption, pageRanges: number[]
             const pageZeroList = getProperty(pageZeroResponse, options.listItem) || [];
 
             if (pageZeroList.length > 0) {
+                console.log("自动推测：1：0-base");
                 return 0;
             }
         }
@@ -316,6 +319,7 @@ async function determinePageBase(options: DataExportOption, pageRanges: number[]
     }
 
     // 默认使用1-base
+    console.log("默认：1-base");
     return 1;
 }
 
