@@ -32,7 +32,7 @@ const config = [
       resolve(),
       commonjs(),
       typescript({ tsconfig: "./tsconfig.json", tsconfigOverride: override }),
-      terser(),    // 压缩代码
+      // terser(),    // 压缩代码
     ],
   },
   //   ...utilsFiles.map((file) => ({

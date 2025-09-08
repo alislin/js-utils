@@ -167,25 +167,47 @@ export class Task<T> {
 }
 
 /**
- * 等待状态完成
- * @param returnFlag 检查方法（返回true时退出等待）
- * @param ms 检查间隔时间（毫秒，默认100）
- * @returns 
- */
-export async function wait(returnFlag: () => boolean, ms?: number) {
+* 等待状态完成
+* @description 通过轮询检查条件函数（支持同步和异步），直到条件满足时解除阻塞
+* @param returnFlag 检查方法（返回boolean或Promise<boolean>，true时退出等待）
+* @param ms 检查间隔时间（毫秒，默认100）
+* @returns Promise<void> 当条件满足时解析的Promise
+* @example
+* // 同步检查
+* await wait(() => document.querySelector('#myElement') !== null);
+* @example
+* // 异步检查
+* await wait(async () => {
+* const result = await fetchSomeData();
+* return result.isReady;
+* });
+* @example
+* // 自定义检查间隔
+* await wait(() => someCondition, 500);
+*/
+export async function wait(returnFlag: () => boolean | Promise<boolean>, ms?: number): Promise<void> {
     const delay = ms && ms > 0 ? ms : 100;
-    return new Promise<void>((resolve) => {
-        if (returnFlag()) {
-            resolve();
+    return new Promise<void>(async (resolve) => {
+        try {
+            const result = await returnFlag();
+            if (result) {
+                resolve();
+                return;
+            }
+        } catch (error) {
+            // 忽略错误，继续轮询
         }
-        else {
-            const interval = setInterval(() => {
-                if (returnFlag()) {
+        const interval = setInterval(async () => {
+            try {
+                const result = await returnFlag();
+                if (result) {
                     clearInterval(interval);
                     resolve();
                 }
-            }, delay);
-        }
+            } catch (error) {
+                // 忽略错误，继续轮询
+            }
+        }, delay);
     });
 }
 

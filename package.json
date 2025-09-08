@@ -1,7 +1,7 @@
 {
   "name": "zc-js-utils",
   "description": "js utils",
-  "version": "1.2.24",
+  "version": "1.2.25",
   "main": "dist/index.js",
   "module": "dist/index.js",
   "types": "dist/index.d.ts",
