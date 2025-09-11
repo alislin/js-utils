@@ -2,7 +2,7 @@
  * @Author: Lin Ya
  * @Date: 2022-06-30 20:29:34
  * @LastEditors: Lin Ya
- * @LastEditTime: 2025-09-02 15:06:52
+ * @LastEditTime: 2025-09-11 09:28:17
  * @Description: string 帮助方法
  */
 
@@ -384,7 +384,7 @@ export function listToStr(list?: string[], split?: string): string {
  */
 export function strToList(str?: string): string[] {
     let n = str?.replace("\r", "");
-    return n?.split("\n") ?? [];
+    return splitText(n, '\n');
 }
 
 /**
@@ -827,3 +827,281 @@ export function boolValue(value: any | null | undefined, trueKeys?: string[]): b
     // 默认情况下检查这些值视为 true
     return ['true', '1', 'yes', 'y', 'on'].includes(normalizedStr);
 }
+
+// #region 文本解析
+/**
+ * CSV解析器配置选项
+ */
+export interface CSVParserOptions {
+    /** 分隔符，默认为逗号 */
+    delimiter?: string;
+    /** 列名数组，默认取第一行 */
+    columnNames?: string[];
+    /** 是否支持多行数据，默认为 false */
+    supportMultiline?: boolean;
+}
+
+/**
+ * 解析CSV文本字符串为对象数组
+ * 
+ * @param csvText - CSV文本字符串
+ * @param options - 解析选项
+ * @returns 对象数组，每个对象的属性名对应列名
+ * 
+ * @example
+ * // 使用第一行作为列名（默认行为）
+ * const csv = `name,age,city
+ * 张三,25,北京
+ * 李四,30,上海`;
+ * const result = parseCSV(csv);
+ * // 返回: [{ name: '张三', age: '25', city: '北京' }, { name: '李四', age: '30', city: '上海' }]
+ * 
+ * @example
+ * // 使用自定义列名
+ * const csv = `张三,25,北京
+ * 李四,30,上海`;
+ * const result = parseCSV(csv, { columnNames: ['姓名', '年龄', '城市'] });
+ * // 返回: [{ 姓名: '张三', 年龄: '25', 城市: '北京' }, { 姓名: '李四', 年龄: '30', 城市: '上海' }]
+ * 
+ * @example
+ * // 使用序号作为列名
+ * const csv = `张三,25,北京
+ * 李四,30,上海`;
+ * const result = parseCSV(csv, { columnNames: [] });
+ * // 返回: [{ column_0: '张三', column_1: '25', column_2: '北京' }, { column_0: '李四', column_1: '30', column_2: '上海' }]
+ * 
+ * @example
+ * // 自定义分隔符
+ * const csv = `name|age|city
+ * 张三|25|北京
+ * 李四|30|上海`;
+ * const result = parseCSV(csv, { delimiter: '|' });
+ * // 返回: [{ name: '张三', age: '25', city: '北京' }, { name: '李四', age: '30', city: '上海' }]
+ * 
+ * @example
+ * // 支持多行数据（包含换行符的字段）
+ * const csv = `"姓名","描述"
+ * "张三","这是一个
+ * 多行描述"
+ * "李四","单行描述"`;
+ * const result = parseCSV(csv, { supportMultiline: true });
+ * // 返回: [{ 姓名: '张三', 描述: '这是一个\n多行描述' }, { 姓名: '李四', 描述: '单行描述' }]
+ * 
+ * @example
+ * // 不支持多行数据（默认行为）
+ * const csv = `"姓名","描述"
+ * "张三","这是一个
+ * 多行描述"
+ * "李四","单行描述"`;
+ * const result = parseCSV(csv, { supportMultiline: false });
+ * // 返回: [{ 姓名: '张三', 描述: '这是一个' }, { 姓名: '多行描述"', 描述: '' }, { 姓名: '李四', 描述: '单行描述' }]
+ */
+export function parseCSV(csvText: string, options: CSVParserOptions = {}): Record<string, string>[] {
+    const { delimiter = ',', columnNames = undefined, supportMultiline = false } = options;
+
+    // 处理空字符串
+    if (!csvText || csvText.trim() === '') {
+        return [];
+    }
+
+    // 根据是否支持多行数据选择解析方法
+    const lines = supportMultiline
+        ? parseCSVLinesWithMultiline(csvText, delimiter)
+        : parseCSVLinesWithoutMultiline(csvText, delimiter);
+
+    // 如果没有行数据，返回空数组
+    if (lines.length === 0) {
+        return [];
+    }
+
+    // 确定列名
+    let headers: string[];
+    let dataStartIndex: number;
+
+    if (columnNames && columnNames.length > 0) {
+        // 使用传入的列名
+        headers = columnNames;
+        dataStartIndex = 0;
+    } else if (columnNames && columnNames.length === 0) {
+        // 使用序号作为列名
+        headers = lines[0].map((_, index) => `column_${index}`);
+        dataStartIndex = 0;
+    } else {
+        // 使用第一行作为列名
+        headers = lines[0];
+        dataStartIndex = 1;
+    }
+
+    // 解析数据行
+    const result: Record<string, string>[] = [];
+
+    for (let i = dataStartIndex; i < lines.length; i++) {
+        const fields = lines[i];
+        const row: Record<string, string> = {};
+
+        // 将字段映射到对应的列名
+        headers.forEach((header, index) => {
+            row[header] = fields[index] || '';
+        });
+
+        // 检查是否为有效行（至少有一个非空属性）
+        if (isValidRow(row)) {
+            result.push(row);
+        }
+    }
+
+    return result;
+}
+
+/**
+ * 检查行是否为有效行（至少有一个非空属性）
+ * 
+ * @param row - 行对象
+ * @returns 如果行有效返回true，否则返回false
+ */
+function isValidRow(row: Record<string, string>): boolean {
+    return Object.values(row).some(value => value.trim() !== '');
+}
+
+/**
+ * 解析CSV文本为行数组（支持多行字段）
+ * 
+ * @param csvText - CSV文本字符串
+ * @param delimiter - 分隔符
+ * @returns 行数组，每行是一个字段数组
+ */
+export function parseCSVLinesWithMultiline(csvText: string, delimiter: string): string[][] {
+    const lines: string[][] = [];
+    let currentRow: string[] = [];
+    let currentField = '';
+    let inQuotes = false;
+    let i = 0;
+
+    while (i < csvText.length) {
+        const char = csvText[i];
+        const nextChar = i + 1 < csvText.length ? csvText[i + 1] : '';
+
+        if (char === '"' && !inQuotes && currentField === '') {
+            // 开始引号
+            inQuotes = true;
+        } else if (char === '"' && inQuotes && nextChar === '"') {
+            // 双引号转义
+            currentField += '"';
+            i++; // 跳过下一个引号
+        } else if (char === '"' && inQuotes) {
+            // 结束引号
+            inQuotes = false;
+        } else if (char === '\r' && nextChar === '\n' && !inQuotes) {
+            // Windows换行符 \r\n
+            i++; // 跳过 \n
+            // 结束当前字段并添加到当前行
+            currentRow.push(currentField);
+            currentField = '';
+            // 结束当前行
+            lines.push(currentRow);
+            currentRow = [];
+        } else if ((char === '\n' || char === '\r') && !inQuotes) {
+            // Unix换行符 \n 或 Mac换行符 \r
+            // 结束当前字段并添加到当前行
+            currentRow.push(currentField);
+            currentField = '';
+            // 结束当前行
+            lines.push(currentRow);
+            currentRow = [];
+        } else if (char === delimiter && !inQuotes) {
+            // 分隔符
+            currentRow.push(currentField);
+            currentField = '';
+        } else {
+            // 普通字符
+            currentField += char;
+        }
+
+        i++;
+    }
+
+    // 处理最后一行
+    if (currentField !== '' || currentRow.length > 0) {
+        currentRow.push(currentField);
+        lines.push(currentRow);
+    }
+
+    return lines;
+}
+
+/**
+ * 解析CSV文本为行数组（不支持多行字段，按行分割处理）
+ * 
+ * @param csvText - CSV文本字符串
+ * @param delimiter - 分隔符
+ * @returns 行数组，每行是一个字段数组
+ */
+export function parseCSVLinesWithoutMultiline(csvText: string, delimiter: string): string[][] {
+    // 按行分割文本，过滤空行
+    const lines = csvText.split(/\r?\n/).filter(line => line.trim() !== '');
+
+    // 解析每一行
+    return lines.map(line => parseLine(line, delimiter));
+}
+
+/**
+ * 解析单行CSV数据，处理引号和转义字符
+ * 
+ * @param line - 单行CSV文本
+ * @param delimiter - 分隔符
+ * @returns 字段数组
+ * 
+ * @example
+ * // 解析普通行
+ * parseLine('张三,25,北京', ',');
+ * // 返回: ['张三', '25', '北京']
+ * 
+ * @example
+ * // 解析包含引号的行
+ * parseLine('"张三,李四",25,北京', ',');
+ * // 返回: ['张三,李四', '25', '北京']
+ * 
+ * @example
+ * // 解析包含转义引号的行
+ * parseLine('"张三""李四",25,北京', ',');
+ * // 返回: ['张三"李四', '25', '北京']
+ */
+export function parseLine(line: string, delimiter: string): string[] {
+    const fields: string[] = [];
+    let field = '';
+    let inQuotes = false;
+    let i = 0;
+
+    while (i < line.length) {
+        const char = line[i];
+        const nextChar = i + 1 < line.length ? line[i + 1] : '';
+
+        if (char === '"' && !inQuotes && field === '') {
+            // 开始引号
+            inQuotes = true;
+        } else if (char === '"' && inQuotes && nextChar === '"') {
+            // 双引号转义
+            field += '"';
+            i++; // 跳过下一个引号
+        } else if (char === '"' && inQuotes) {
+            // 结束引号
+            inQuotes = false;
+        } else if (char === delimiter && !inQuotes) {
+            // 分隔符
+            fields.push(field);
+            field = '';
+        } else {
+            // 普通字符
+            field += char;
+        }
+
+        i++;
+    }
+
+    // 添加最后一个字段
+    fields.push(field);
+
+    return fields;
+}
+
+// #endregion
