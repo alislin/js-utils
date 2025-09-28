@@ -2,7 +2,7 @@
  * @Author: Lin Ya
  * @Date: 2023-08-18 11:29:47
  * @LastEditors: Lin Ya
- * @LastEditTime: 2025-08-15 12:28:48
+ * @LastEditTime: 2025-09-28 08:35:50
  * @Description: 调用防抖
  */
 /**
@@ -68,26 +68,6 @@
  *   private saveToDB(content: string) {
  *     // 保存逻辑
  *   }
- * }
- * ```
- * 
- * @example 立即执行版本（通过参数扩展）
- * ```typescript
- * // 如果需要立即执行版本，可以这样扩展：
- * function advancedDebounce(fn: Function, delay = 1000, immediate = false) {
- *   let timer: NodeJS.Timeout;
- *   return function(this: any, ...args: any[]) {
- *     if (immediate && !timer) {
- *       fn.apply(this, args);
- *     }
- *     clearTimeout(timer);
- *     timer = setTimeout(() => {
- *       if (!immediate) {
- *         fn.apply(this, args);
- *       }
- *       timer = null;
- *     }, delay);
- *   };
  * }
  * ```
  */
