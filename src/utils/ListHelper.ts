@@ -2,7 +2,7 @@
  * @Author: Lin Ya
  * @Date: 2022-11-03 17:28:19
  * @LastEditors: Lin Ya
- * @LastEditTime: 2025-07-11 10:39:36
+ * @LastEditTime: 2025-09-28 15:46:07
  * @Description: list 方法
  */
 
@@ -14,11 +14,14 @@ import { areObjectEqual } from "./ObjectHelper";
  * @param list 
  * @returns 默认值(第一条记录或者是空值)
  */
-export function getDefault<T>(list?: T[] | string) {
+export function getDefault<T>(list?: T[] | string | any, func = (x: T) => true) {
     if (!list) return undefined;
 
     if (Array.isArray(list)) {
-
+        if (func) {
+            const item = list.find(x => func(x));
+            return item;
+        }
         if (list.length > 0) return list[0];
         return undefined;
     }

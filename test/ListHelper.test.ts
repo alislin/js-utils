@@ -2,10 +2,10 @@
  * @Author: Lin Ya
  * @Date: 2024-08-19 17:59:47
  * @LastEditors: Lin Ya
- * @LastEditTime: 2025-07-11 10:36:45
+ * @LastEditTime: 2025-09-28 15:46:11
  * @Description: ListHelper test
  */
-import { getCombinations, groupBy, groupByFunc, intersect, listDistinct, listEqual, listFlat, listFlats, listGroupSum, listGroupSumAll, listGroupSumFirst, listPageAction, listSum, listToObject, loadByPage } from "../src/utils/ListHelper";
+import { getCombinations, getDefault, groupBy, groupByFunc, intersect, listDistinct, listEqual, listFlat, listFlats, listGroupSum, listGroupSumAll, listGroupSumFirst, listPageAction, listSum, listToObject, loadByPage } from "../src/utils/ListHelper";
 // import { describe, expect, test } from '@jest/globals';
 describe('listSum 组合求和', () => {
     test("listSum", () => {
@@ -1056,5 +1056,94 @@ describe('intersect 方法测试', () => {
         expect(result.length).toBe(5000);
         expect(result[0]).toBe(5000);
         expect(result[4999]).toBe(9999);
+    });
+});
+
+describe('getDefault 函数测试', () => {
+    /**
+     * 测试空值或未定义输入
+     * 预期：返回 undefined
+     */
+    test('输入 null 或 undefined 应返回 undefined', () => {
+        expect(getDefault(null)).toBeUndefined();
+        expect(getDefault(undefined)).toBeUndefined();
+    });
+
+    /**
+     * 测试字符串输入
+     * 预期：直接返回字符串本身
+     */
+    test('输入字符串应返回原字符串', () => {
+        const input = "测试字符串";
+        expect(getDefault(input)).toBe(input);
+    });
+
+    /**
+     * 测试空数组输入
+     * 预期：返回 undefined
+     */
+    test('输入空数组应返回 undefined', () => {
+        expect(getDefault([])).toBeUndefined();
+    });
+
+    /**
+     * 测试非空数组输入（无过滤函数）
+     * 预期：返回数组的第一个元素
+     */
+    test('输入非空数组且无过滤函数时应返回第一个元素', () => {
+        const input = [1, 2, 3];
+        expect(getDefault(input)).toBe(1);
+    });
+
+    /**
+     * 测试非空数组输入（带过滤函数）
+     * 预期：返回第一个满足过滤条件的元素
+     */
+    test('输入非空数组且有过滤函数时应返回第一个匹配项', () => {
+        const input = [1, 2, 3];
+        const filterFunc = (x: number) => x > 1;
+        expect(getDefault(input, filterFunc)).toBe(2);
+    });
+
+    /**
+     * 测试过滤函数无匹配项
+     * 预期：返回 undefined
+     */
+    test('输入数组无元素满足过滤条件时应返回 undefined', () => {
+        const input = [1, 2, 3];
+        const filterFunc = (x: number) => x > 3;
+        expect(getDefault(input, filterFunc)).toBeUndefined();
+    });
+
+    /**
+     * 测试混合类型输入
+     * 预期：正确处理混合类型的数组
+     */
+    test('输入混合类型数组时应返回第一个元素', () => {
+        const input = [1, "two", { key: "value" }];
+        expect(getDefault(input)).toBe(1);
+    });
+
+    /**
+     * 测试边界条件（单元素数组）
+     * 预期：正确处理单元素数组
+     */
+    test('输入单元素数组时应返回该元素', () => {
+        const input = [42];
+        expect(getDefault(input)).toBe(42);
+    });
+
+    /**
+     * 测试对象数组（带过滤函数）
+     * 预期：返回第一个满足条件的对象
+     */
+    test('输入对象数组且有过滤函数时应返回第一个匹配对象', () => {
+        const input = [
+            { id: 1, name: "Alice" },
+            { id: 2, name: "Bob" },
+            { id: 3, name: "Charlie" }
+        ];
+        const filterFunc = (x: { id: number }) => x.id > 1;
+        expect(getDefault(input, filterFunc)).toEqual({ id: 2, name: "Bob" });
     });
 });
