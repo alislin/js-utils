@@ -474,13 +474,9 @@ export function listFlats<T>(list: T[], children: (item: T) => T[], filter?: (it
  * const comments = await loadByPage(...);
  */
 export async function loadByPage<TResult, Response>(
-    /** 开始页码 */
     firstPage: number,
-    /** 加载方法 */
     load: (page: number) => Promise<Response>,
-    /** 获取总页数方法 */
     getTotalPages: (resp: Response) => number,
-    /** 获取结果列表方法 */
     getItems: (resp: Response) => TResult[],
     opt?: {
         onError?: (error: unknown) => void,
@@ -492,7 +488,7 @@ export async function loadByPage<TResult, Response>(
         if (firstPage === null) {
             throw new Error('起始页码必须是有效数字');
         }
-        let firstIndex = Number(firstPage) + 0;
+        let firstIndex = Number(firstPage);
         if (isNaN(firstIndex)) {
             throw new Error('起始页码必须是有效数字');
         }
@@ -500,48 +496,51 @@ export async function loadByPage<TResult, Response>(
         const first_resp = await load(firstIndex);
         if (!first_resp) return [];
 
-        // 获取第一页数据列表（确保是数组）
         const firstPageItems = getItems(first_resp);
         if (!Array.isArray(firstPageItems)) {
             throw new Error('getItems 必须返回数组类型');
         }
         list.push(...firstPageItems);
-
-        // 执行分页回调
         opt?.onPage?.(first_resp);
 
-        // 计算总页数（确保是数字）
-        let total = Number(getTotalPages(first_resp)) + firstIndex;
+        // 修复：总页数不应该加上 firstIndex
+        let total = Number(getTotalPages(first_resp));
         if (isNaN(total)) {
             throw new Error('总页数必须是有效数字');
         }
-        if (total > firstIndex) {
-            for (let i = firstIndex + 1; i < total; i++) {
-                const resp = await load(i);
-                if (!resp) {
-                    if (opt?.onError) opt.onError(``);
-                    break;
-                }
 
-                // 更新总页数（每次请求后重新校验）
-                total = Number(getTotalPages(resp)) + firstIndex;
-                if (isNaN(total)) {
-                    throw new Error('总页数必须是有效数字');
-                }
+        // 计算应该加载的最后一页
+        // 考虑到firstIndex作为起始页码和getTotalPages返回的总页数
+        let maxPage = firstIndex + Number(getTotalPages(first_resp)) - 1;
 
-                // 获取当前页数据列表（确保是数组）
-                const currentItems = getItems(resp);
-                if (!Array.isArray(currentItems)) {
-                    throw new Error('getItems 必须返回数组类型');
-                }
-
-                list.push(...getItems(resp));
-                if (opt?.onPage) opt.onPage(resp);
+        // 循环加载后续页面
+        for (let i = firstIndex + 1; i <= maxPage; i++) {
+            const resp = await load(i);
+            if (!resp) {
+                if (opt?.onError) opt.onError(``);
+                break;
             }
+
+            // 每次请求后重新校验总页数，也相应调整最后一页
+            const currentTotalPages = Number(getTotalPages(resp));
+            if (isNaN(currentTotalPages)) {
+                throw new Error('总页数必须是有效数字');
+            }
+
+            // 更新最大页码，动态调整以应对页数变化
+            const newMaxPage = firstIndex + currentTotalPages - 1;
+            maxPage = Math.max(maxPage, newMaxPage); // 动态增长最大页码
+
+            const currentItems = getItems(resp);
+            if (!Array.isArray(currentItems)) {
+                throw new Error('getItems 必须返回数组类型');
+            }
+
+            list.push(...getItems(resp));
+            if (opt?.onPage) opt.onPage(resp);
         }
     } catch (error) {
         if (opt?.onError) opt.onError(error);
-        // 捕获所有错误并返回空数组
         return list;
     }
     return list;
