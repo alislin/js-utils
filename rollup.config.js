@@ -29,9 +29,7 @@ const config = [
     },
     plugins: [
       clear({ targets: ["dist"] }),
-      resolve({
-        extensions: ['.js', '.ts']
-      }),
+      resolve(),
       commonjs(),
       typescript({ tsconfig: "./tsconfig.json", tsconfigOverride: override }),
       // terser(),    // 压缩代码
